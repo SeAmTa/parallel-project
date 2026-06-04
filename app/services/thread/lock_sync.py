@@ -8,23 +8,23 @@ def scenario_1():
     output = []
     lock = threading.Lock()
 
-    def worker(thread_number):
+    def technician_access(technician_number):
         with lock:
             output.append(
-                f"---> Thread#{thread_number} running, belonging to process ID {os.getpid()}"
+                f"Technician #{technician_number} entered the server room"
             )
 
             time.sleep(0.5)
 
             output.append(
-                f"---> Thread#{thread_number} over"
+                f"Technician #{technician_number} left the server room"
             )
 
     threads = []
 
     for i in range(1, 10):
         thread = threading.Thread(
-            target=worker,
+            target=technician_access,
             args=(i,)
         )
 
@@ -34,16 +34,16 @@ def scenario_1():
     for thread in threads:
         thread.join()
 
-    output.append("End")
+    output.append("Server room access log completed")
 
     return {
         "method": "thread",
         "section": 4,
         "scenario": 1,
-        "title": "Thread Synchronization with Lock",
+        "title": "Server Room Access Control with Lock",
         "output": output,
         "explanation":
-            "در این سناریو از Lock استفاده شده است. بنابراین در هر لحظه فقط یک thread می‌تواند وارد بخش بحرانی شود و پیام running و over را پشت سر هم تولید کند."
+            "در این سناریو چند تکنسین می‌خواهند وارد اتاق سرور شوند. چون اتاق سرور حساس است، با Lock فقط یک تکنسین در هر لحظه اجازه ورود دارد."
     }
 
 
@@ -51,14 +51,14 @@ def scenario_2():
     output = []
     lock = threading.Lock()
 
-    def worker(thread_number):
+    def technician_access(technician_number):
         output.append(
-            f"Thread#{thread_number} is waiting for lock"
+            f"Technician #{technician_number} requested access to the server room"
         )
 
         with lock:
             output.append(
-                f"Thread#{thread_number} entered critical section"
+                f"Technician #{technician_number} access approved"
             )
 
             time.sleep(
@@ -66,14 +66,14 @@ def scenario_2():
             )
 
             output.append(
-                f"Thread#{thread_number} left critical section"
+                f"Technician #{technician_number} completed maintenance and exited"
             )
 
     threads = []
 
     for i in range(1, 10):
         thread = threading.Thread(
-            target=worker,
+            target=technician_access,
             args=(i,)
         )
 
@@ -83,23 +83,25 @@ def scenario_2():
     for thread in threads:
         thread.join()
 
+    output.append("All access requests were processed safely")
+
     return {
         "method": "thread",
         "section": 4,
         "scenario": 2,
-        "title": "Thread Synchronization with Lock",
+        "title": "Server Room Access Queue with Lock",
         "output": output,
         "explanation":
-            "در این سناریو قبل از گرفتن Lock پیام waiting چاپ می‌شود. سپس هر thread به ترتیب وارد بخش بحرانی می‌شود. زمان اجرای بخش بحرانی تصادفی است، اما همزمانی داخل آن رخ نمی‌دهد."
+            "در این سناریو همه تکنسین‌ها ابتدا درخواست ورود ثبت می‌کنند. سپس Lock باعث می‌شود درخواست‌ها یکی‌یکی وارد بخش حساس شوند و دسترسی همزمان اتفاق نیفتد."
     }
 
 
 def scenario_3():
     output = []
 
-    def worker(thread_number):
+    def technician_access(technician_number):
         output.append(
-            f"Thread#{thread_number} running without lock"
+            f"WARNING: Technician #{technician_number} entered without access lock"
         )
 
         time.sleep(
@@ -107,14 +109,14 @@ def scenario_3():
         )
 
         output.append(
-            f"Thread#{thread_number} over without lock"
+            f"Technician #{technician_number} left without controlled access"
         )
 
     threads = []
 
     for i in range(1, 10):
         thread = threading.Thread(
-            target=worker,
+            target=technician_access,
             args=(i,)
         )
 
@@ -124,12 +126,14 @@ def scenario_3():
     for thread in threads:
         thread.join()
 
+    output.append("Unsafe access simulation completed")
+
     return {
         "method": "thread",
         "section": 4,
         "scenario": 3,
-        "title": "Thread Synchronization with Lock",
+        "title": "Server Room Access Without Lock",
         "output": output,
         "explanation":
-            "در این سناریو عمداً از Lock استفاده نشده است. بنابراین چند thread می‌توانند همزمان اجرا شوند و ترتیب خروجی‌ها قابل پیش‌بینی نیست."
+            "در این سناریو عمداً Lock حذف شده است. بنابراین چند تکنسین می‌توانند همزمان وارد اتاق سرور شوند و ترتیب خروجی‌ها قابل پیش‌بینی نیست. این حالت نشان می‌دهد چرا برای منابع حساس به Lock نیاز داریم."
     }

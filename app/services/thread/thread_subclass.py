@@ -4,76 +4,100 @@ import os
 import random
 
 
-class MyThread(threading.Thread):
+class WarehouseRobot(threading.Thread):
 
-    def __init__(self, thread_number, delay):
+    def __init__(self, robot_number, task_name, delay, output):
         super().__init__()
-        self.thread_number = thread_number
+        self.robot_number = robot_number
+        self.task_name = task_name
         self.delay = delay
-        self.output = None
+        self.output = output
 
     def run(self):
         self.output.append(
-            f"---> Thread#{self.thread_number} running, belonging to process ID {os.getpid()}"
+            f"Robot #{self.robot_number} started {self.task_name} in process ID {os.getpid()}"
         )
 
         time.sleep(self.delay)
 
         self.output.append(
-            f"---> Thread#{self.thread_number} over"
+            f"Robot #{self.robot_number} completed {self.task_name}"
         )
 
 
 def scenario_1():
     output = []
-    threads = []
+    robots = []
 
     for i in range(1, 10):
-        thread = MyThread(i, 0.5)
-        thread.output = output
-        threads.append(thread)
-        thread.start()
+        robot = WarehouseRobot(
+            robot_number=i,
+            task_name="moving a package",
+            delay=0.4,
+            output=output
+        )
 
-    for thread in threads:
-        thread.join()
+        robots.append(robot)
+        robot.start()
 
-    output.append("End")
+    for robot in robots:
+        robot.join()
+
+    output.append("All warehouse robots finished their tasks")
 
     return {
         "method": "thread",
         "section": 3,
         "scenario": 1,
-        "title": "Defining a Thread Subclass",
+        "title": "Warehouse Robots as Thread Subclasses",
         "output": output,
         "explanation":
-            "در این سناریو یک کلاس از threading.Thread ارث‌بری می‌کند و متد run بازنویسی می‌شود. همه thread ها در یک process مشترک اجرا می‌شوند."
+            "در این سناریو هر ربات انبار به صورت یک کلاس مستقل از threading.Thread ساخته شده است. هر ربات متد run مخصوص خودش را اجرا می‌کند و همه ربات‌ها داخل یک process مشترک کار می‌کنند."
     }
 
 
 def scenario_2():
     output = []
-    threads = []
+    robots = []
+
+    tasks = [
+        "moving a package",
+        "scanning a barcode",
+        "checking shelf inventory",
+        "delivering a box",
+        "sorting products",
+        "charging station check",
+        "loading a cart",
+        "placing an item on shelf",
+        "packing an order",
+    ]
 
     for i in range(1, 10):
-        delay = random.uniform(0.1, 1)
-        thread = MyThread(i, delay)
-        thread.output = output
-        threads.append(thread)
-        thread.start()
+        delay = round(random.uniform(0.2, 1.0), 2)
 
-    for thread in threads:
-        thread.join()
+        robot = WarehouseRobot(
+            robot_number=i,
+            task_name=tasks[i - 1],
+            delay=delay,
+            output=output
+        )
 
-    output.append("End")
+        robots.append(robot)
+        robot.start()
+
+    for robot in robots:
+        robot.join()
+
+    output.append("Warehouse task queue completed")
 
     return {
         "method": "thread",
         "section": 3,
         "scenario": 2,
-        "title": "Defining a Thread Subclass",
+        "title": "Warehouse Robots with Different Task Durations",
         "output": output,
         "explanation":
-            "در این سناریو برای هر thread زمان اجرای تصادفی در نظر گرفته شده است. بنابراین ترتیب پایان thread ها در هر اجرا متفاوت خواهد بود."
+            "در این سناریو هر ربات وظیفه متفاوتی دارد و زمان انجام کارها یکسان نیست. چون ربات‌ها همزمان اجرا می‌شوند، ترتیب پایان کار آن‌ها به مدت زمان هر وظیفه بستگی دارد."
     }
 
 
@@ -81,19 +105,24 @@ def scenario_3():
     output = []
 
     for i in range(1, 10):
-        thread = MyThread(i, 0.2)
-        thread.output = output
-        thread.start()
-        thread.join()
+        robot = WarehouseRobot(
+            robot_number=i,
+            task_name="single-lane package handling",
+            delay=0.2,
+            output=output
+        )
 
-    output.append("End")
+        robot.start()
+        robot.join()
+
+    output.append("Single-lane warehouse processing completed")
 
     return {
         "method": "thread",
         "section": 3,
         "scenario": 3,
-        "title": "Defining a Thread Subclass",
+        "title": "Warehouse Robots in Single-lane Mode",
         "output": output,
         "explanation":
-            "در این سناریو بعد از start هر thread بلافاصله join اجرا می‌شود. بنابراین thread ها به جای اجرای همزمان، یکی‌یکی اجرا می‌شوند."
+            "در این سناریو ربات‌ها هنوز با subclass از Thread ساخته شده‌اند، اما بعد از start هر ربات بلافاصله join اجرا می‌شود. بنابراین ربات بعدی تا پایان کار ربات قبلی شروع نمی‌شود و عملیات ترتیبی انجام می‌شود."
     }

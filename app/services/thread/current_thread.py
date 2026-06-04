@@ -5,25 +5,23 @@ import time
 def scenario_1():
     output = []
 
-    def function_a():
-        output.append("function_A --> starting")
-        time.sleep(1)
-        output.append("function_A --> exiting")
+    def download_file(file_name):
+        current_thread = threading.current_thread()
 
-    def function_b():
-        output.append("function_B --> starting")
-        time.sleep(1)
-        output.append("function_B --> exiting")
+        output.append(
+            f"{file_name} download started by {current_thread.name}"
+        )
 
-    def function_c():
-        output.append("function_C --> starting")
-        time.sleep(1)
-        output.append("function_C --> exiting")
+        time.sleep(0.5)
+
+        output.append(
+            f"{file_name} download completed by {current_thread.name}"
+        )
 
     threads = [
-        threading.Thread(target=function_a),
-        threading.Thread(target=function_b),
-        threading.Thread(target=function_c),
+        threading.Thread(target=download_file, args=("image.png",)),
+        threading.Thread(target=download_file, args=("video.mp4",)),
+        threading.Thread(target=download_file, args=("document.pdf",)),
     ]
 
     for thread in threads:
@@ -36,44 +34,44 @@ def scenario_1():
         "method": "thread",
         "section": 2,
         "scenario": 1,
-        "title": "Determining the Current Thread",
+        "title": "Multi-file Download System",
         "output": output,
         "explanation":
-            "در این سناریو سه تابع در سه thread جداگانه اجرا می‌شوند. ابتدا هر تابع پیام starting را چاپ می‌کند، سپس بعد از sleep پیام exiting را تولید می‌کند."
+            "در این سناریو یک برنامه دانلود، سه فایل را همزمان دانلود می‌کند. با استفاده از threading.current_thread مشخص می‌شود هر فایل توسط کدام thread پردازش شده است."
     }
 
 
 def scenario_2():
     output = []
 
-    def worker(function_name):
+    def download_file(file_name):
         current_thread = threading.current_thread()
 
         output.append(
-            f"{function_name} is running in {current_thread.name}"
+            f"{current_thread.name} started downloading {file_name}"
         )
 
         time.sleep(0.5)
 
         output.append(
-            f"{function_name} finished in {current_thread.name}"
+            f"{current_thread.name} finished downloading {file_name}"
         )
 
     threads = [
         threading.Thread(
-            target=worker,
-            name="Thread-A",
-            args=("function_A",)
+            target=download_file,
+            name="Image-Downloader",
+            args=("image.png",)
         ),
         threading.Thread(
-            target=worker,
-            name="Thread-B",
-            args=("function_B",)
+            target=download_file,
+            name="Video-Downloader",
+            args=("video.mp4",)
         ),
         threading.Thread(
-            target=worker,
-            name="Thread-C",
-            args=("function_C",)
+            target=download_file,
+            name="Document-Downloader",
+            args=("document.pdf",)
         ),
     ]
 
@@ -87,44 +85,44 @@ def scenario_2():
         "method": "thread",
         "section": 2,
         "scenario": 2,
-        "title": "Determining the Current Thread",
+        "title": "Named Downloader Threads",
         "output": output,
         "explanation":
-            "در این سناریو برای هر thread یک نام مشخص تعیین شده است. با threading.current_thread نام thread جاری دریافت و در خروجی نمایش داده می‌شود."
+            "در این سناریو برای هر دانلودر یک نام مشخص انتخاب شده است. این کار باعث می‌شود لاگ‌های برنامه خواناتر شوند و مشخص باشد هر فایل توسط کدام thread دانلود شده است."
     }
 
 
 def scenario_3():
     output = []
 
-    def worker(function_name, delay):
+    def download_file(file_name, file_size, download_time):
         current_thread = threading.current_thread()
 
         output.append(
-            f"{function_name} started in {current_thread.name}"
+            f"{current_thread.name} started {file_name} ({file_size} MB)"
         )
 
-        time.sleep(delay)
+        time.sleep(download_time)
 
         output.append(
-            f"{function_name} exited after {delay} seconds"
+            f"{current_thread.name} completed {file_name} after {download_time} seconds"
         )
 
     threads = [
         threading.Thread(
-            target=worker,
-            name="Fast-Thread",
-            args=("function_A", 0.2)
+            target=download_file,
+            name="Small-File-Thread",
+            args=("icon.png", 2, 0.2)
         ),
         threading.Thread(
-            target=worker,
-            name="Medium-Thread",
-            args=("function_B", 0.6)
+            target=download_file,
+            name="Medium-File-Thread",
+            args=("report.pdf", 25, 0.6)
         ),
         threading.Thread(
-            target=worker,
-            name="Slow-Thread",
-            args=("function_C", 1)
+            target=download_file,
+            name="Large-File-Thread",
+            args=("movie.mp4", 700, 1)
         ),
     ]
 
@@ -138,8 +136,8 @@ def scenario_3():
         "method": "thread",
         "section": 2,
         "scenario": 3,
-        "title": "Determining the Current Thread",
+        "title": "Download System with Different File Sizes",
         "output": output,
         "explanation":
-            "در این سناریو thread ها زمان اجرای متفاوت دارند. به همین دلیل ترتیب پیام‌های خروج بر اساس delay هر thread تغییر می‌کند."
+            "در این سناریو فایل‌ها اندازه‌های متفاوتی دارند و زمان دانلود آن‌ها متفاوت است. خروجی نشان می‌دهد هر thread چه فایلی را شروع و چه زمانی تمام کرده است."
     }

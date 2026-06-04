@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Parallel Processing Project</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="page">
+    <header class="header">
+        <div>
+            <h1>Parallel Processing Final Project</h1>
+            <p>نسخه پیشرفت پروژه — Thread-Based Parallelism with Live Logs</p>
+        </div>
+        <span class="badge">FastAPI + SSE</span>
+    </header>
+
+    <main class="grid">
+        <section class="panel controls">
+            <h2>تنظیمات اجرا</h2>
+
+            <label>نوع موازی‌سازی</label>
+            <select id="method">
+                <option value="" selected disabled>
+                    انتخاب کنید
+                </option>
+            
+                <option value="thread">
+                    Thread-Based Parallelism
+                </option>
+            </select>
+
+            <label>بخش</label>
+            <select id="section">
+                <option value="" selected disabled>انتخاب کنید</option>
+                <option value="1">1 - Defining a Thread</option>
+                <option value="2">2 - Determining the Current Thread</option>
+                <option value="3">3 - Defining a Thread Subclass</option>
+                <option value="4">4 - Thread Synchronization with Lock</option>
+                <option value="5">5 - Thread Synchronization with RLock</option>
+                <option value="6">6 - Thread Synchronization with Semaphore</option>
+            </select>
+
+            <label>سناریو</label>
+            <select id="scenario">
+                <option value="" selected disabled>انتخاب کنید</option>
+                <option value="1">Scenario 1</option>
+                <option value="2">Scenario 2</option>
+                <option value="3">Scenario 3</option>
+            </select>
+
+            <button class="run-btn" onclick="runScenario()">اجرای سناریو</button>
+            <button class="stop-btn" onclick="stopScenario()">توقف نمایش لاگ</button>
+
+            <div class="status-card">
+                <span>وضعیت:</span>
+                <strong id="status">Waiting For Selection</strong>
+            </div>
+        </section>
+
+        <section class="panel output-panel">
+            <div class="result-header">
+                <div>
+                    <h4 id="sectionTitle">Section not selected</h4>
+                    <h2 id="title">سناریویی اجرا نشده است</h2>
+                    <p id="meta">یک Section و Scenario انتخاب کن و اجرا را بزن.</p>
+                </div>
+
+                <div class="log-counter">
+                    <span id="logCount">0</span>
+                    <small>logs</small>
+                </div>
+            </div>
+
+            <div class="terminal">
+                <div class="terminal-top">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span>Live Execution Log</span>
+                </div>
+                <pre id="output">Waiting for execution...</pre>
+            </div>
+
+            <div class="explanation">
+                <h3>توضیح سناریو</h3>
+                <p id="explanation">---</p>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+let eventSource = null;
+let logCount = 0;
+
+const SECTION_NAMES = {
+    "1": "Defining a Thread",
+    "2": "Determining the Current Thread",
+    "3": "Defining a Thread Subclass",
+    "4": "Thread Synchronization with Lock",
+    "5": "Thread Synchronization with RLock",
+    "6": "Thread Synchronization with Semaphore"
+};
+
+function setStatus(text) {
+    document.getElementById("status").innerText = text;
+}
+
+function runScenario() {
+    const method = document.getElementById("method").value;
+    const section = document.getElementById("section").value;
+    const scenario = document.getElementById("scenario").value;
+
+    if (!method || !section || !scenario) {
+        alert("لطفاً تمام فیلدها را انتخاب کنید.");
+        return;
+    }
+
+    const sectionTitleElement = document.getElementById("sectionTitle");
+    const titleElement = document.getElementById("title");
+    const metaElement = document.getElementById("meta");
+    const outputElement = document.getElementById("output");
+    const explanationElement = document.getElementById("explanation");
+    const logCountElement = document.getElementById("logCount");
+
+    if (eventSource !== null) {
+        eventSource.close();
+    }
+
+    logCount = 0;
+    logCountElement.innerText = "0";
+
+    sectionTitleElement.innerText = SECTION_NAMES[section];
+    titleElement.innerText = "در حال اجرا...";
+    metaElement.innerText = `Method: ${method} | Section: ${section} | Scenario: ${scenario}`;
+    outputElement.innerText = "";
+    explanationElement.innerText = "---";
+    setStatus("Running");
+
+    const url = `/stream/${method}/${section}/${scenario}`;
+    eventSource = new EventSource(url);
+
+    eventSource.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+
+        if (data.type === "title") {
+            titleElement.innerText = data.message;
+        }
+
+        else if (data.type === "log") {
+            logCount += 1;
+            logCountElement.innerText = logCount;
+
+            const time = new Date().toLocaleTimeString();
+            outputElement.innerText += `[${time}] ${data.message}\n`;
+            outputElement.scrollTop = outputElement.scrollHeight;
+        }
+
+        else if (data.type === "explanation") {
+            explanationElement.innerText = data.message;
+        }
+
+        else if (data.type === "error") {
+            titleElement.innerText = "خطا";
+            outputElement.innerText += data.message + "\n";
+            setStatus("Error");
+            eventSource.close();
+        }
+
+        else if (data.type === "done") {
+            outputElement.innerText += "\nExecution finished successfully.";
+            setStatus("Finished");
+            eventSource.close();
+        }
+    };
+
+    eventSource.onerror = function() {
+        setStatus("Connection Closed");
+
+        if (eventSource !== null) {
+            eventSource.close();
+        }
+    };
+}
+
+function stopScenario() {
+    if (eventSource !== null) {
+        eventSource.close();
+        eventSource = null;
+        setStatus("Stopped");
+        document.getElementById("output").innerText += "\nLog streaming stopped by user.";
+    }
+}
+</script>
+
+</body>
+</html>

@@ -6,16 +6,22 @@ import random
 def scenario_1():
     output = []
 
-    def my_func(thread_number):
+    def prepare_order(order_number):
         output.append(
-            f"my_func called by thread N°{thread_number}"
+            f"Order #{order_number} assigned to a barista thread"
+        )
+
+        time.sleep(0.2)
+
+        output.append(
+            f"Order #{order_number} is ready"
         )
 
     threads = []
 
-    for i in range(10):
+    for i in range(1, 11):
         thread = threading.Thread(
-            target=my_func,
+            target=prepare_order,
             args=(i,)
         )
 
@@ -29,31 +35,37 @@ def scenario_1():
         "method": "thread",
         "section": 1,
         "scenario": 1,
-        "title": "Defining a Thread",
+        "title": "Coffee Shop Online Orders - Parallel Preparation",
         "output": output,
         "explanation":
-            "10 thread به صورت همزمان اجرا می‌شوند."
+            "در این سناریو ۱۰ سفارش آنلاین وارد کافی‌شاپ شده‌اند. برای هر سفارش یک thread جدا ساخته می‌شود تا سفارش‌ها به صورت همزمان آماده شوند. این حالت مفهوم ساختن thread را نشان می‌دهد."
     }
 
 
 def scenario_2():
     output = []
 
-    def my_func(thread_number):
-
-        time.sleep(
-            random.uniform(0.1, 1)
+    def prepare_order(order_number):
+        preparation_time = round(
+            random.uniform(0.1, 1.0),
+            2
         )
 
         output.append(
-            f"my_func called by thread N°{thread_number}"
+            f"Order #{order_number} started and needs {preparation_time} seconds"
+        )
+
+        time.sleep(preparation_time)
+
+        output.append(
+            f"Order #{order_number} completed in {preparation_time} seconds"
         )
 
     threads = []
 
-    for i in range(10):
+    for i in range(1, 11):
         thread = threading.Thread(
-            target=my_func,
+            target=prepare_order,
             args=(i,)
         )
 
@@ -67,25 +79,30 @@ def scenario_2():
         "method": "thread",
         "section": 1,
         "scenario": 2,
-        "title": "Defining a Thread",
+        "title": "Coffee Shop Orders with Different Preparation Times",
         "output": output,
         "explanation":
-            "هر thread دارای delay تصادفی است."
+            "در این سناریو سفارش‌ها زمان آماده‌سازی متفاوتی دارند. چون همه سفارش‌ها با threadهای جدا اجرا می‌شوند، سفارش‌های سبک‌تر زودتر تمام می‌شوند و ترتیب خروجی ممکن است با شماره سفارش‌ها یکی نباشد."
     }
 
 
 def scenario_3():
     output = []
 
-    def my_func(thread_number):
+    def prepare_order(order_number):
         output.append(
-            f"my_func called by thread N°{thread_number}"
+            f"Single barista started Order #{order_number}"
         )
 
-    for i in range(10):
+        time.sleep(0.2)
 
+        output.append(
+            f"Single barista finished Order #{order_number}"
+        )
+
+    for i in range(1, 11):
         thread = threading.Thread(
-            target=my_func,
+            target=prepare_order,
             args=(i,)
         )
 
@@ -96,8 +113,8 @@ def scenario_3():
         "method": "thread",
         "section": 1,
         "scenario": 3,
-        "title": "Defining a Thread",
+        "title": "Coffee Shop with One Barista - Sequential Preparation",
         "output": output,
         "explanation":
-            "به علت join اجرای thread ها ترتیبی می‌شود."
+            "در این سناریو برای هر سفارش هنوز یک thread ساخته می‌شود، اما چون فقط یک باریستا داریم، بعد از start هر thread بلافاصله join اجرا می‌شود. بنابراین سفارش بعدی تا پایان سفارش قبلی شروع نمی‌شود و اجرا ترتیبی است."
     }
