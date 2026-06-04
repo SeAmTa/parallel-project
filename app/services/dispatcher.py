@@ -22,6 +22,12 @@ from app.services.thread.lock_sync import (
     scenario_3 as lock_sync_scenario_3,
 )
 
+from app.services.thread.rlock_sync import (
+    scenario_1 as rlock_sync_scenario_1,
+    scenario_2 as rlock_sync_scenario_2,
+    scenario_3 as rlock_sync_scenario_3,
+)
+
 THREAD_SECTIONS = {
     1: {
         1: defining_thread_scenario_1,
@@ -46,6 +52,13 @@ THREAD_SECTIONS = {
         2: lock_sync_scenario_2,
         3: lock_sync_scenario_3,
     },
+
+    5: {
+        1: rlock_sync_scenario_1,
+        2: rlock_sync_scenario_2,
+        3: rlock_sync_scenario_3,
+    },
+
 }
 
 
