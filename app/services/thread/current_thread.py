@@ -9,68 +9,29 @@ def scenario_1():
         current_thread = threading.current_thread()
 
         output.append(
-            f"{file_name} download started by {current_thread.name}"
+            f"{file_name} started by {current_thread.name}"
         )
 
         time.sleep(0.5)
 
         output.append(
-            f"{file_name} download completed by {current_thread.name}"
-        )
-
-    threads = [
-        threading.Thread(target=download_file, args=("image.png",)),
-        threading.Thread(target=download_file, args=("video.mp4",)),
-        threading.Thread(target=download_file, args=("document.pdf",)),
-    ]
-
-    for thread in threads:
-        thread.start()
-
-    for thread in threads:
-        thread.join()
-
-    return {
-        "method": "thread",
-        "section": 2,
-        "scenario": 1,
-        "title": "Multi-file Download System",
-        "output": output,
-        "explanation":
-            "در این سناریو یک برنامه دانلود، سه فایل را همزمان دانلود می‌کند. با استفاده از threading.current_thread مشخص می‌شود هر فایل توسط کدام thread پردازش شده است."
-    }
-
-
-def scenario_2():
-    output = []
-
-    def download_file(file_name):
-        current_thread = threading.current_thread()
-
-        output.append(
-            f"{current_thread.name} started downloading {file_name}"
-        )
-
-        time.sleep(0.5)
-
-        output.append(
-            f"{current_thread.name} finished downloading {file_name}"
+            f"{file_name} completed by {current_thread.name}"
         )
 
     threads = [
         threading.Thread(
             target=download_file,
-            name="Image-Downloader",
+            name="Download-Thread-1",
             args=("image.png",)
         ),
         threading.Thread(
             target=download_file,
-            name="Video-Downloader",
+            name="Download-Thread-2",
             args=("video.mp4",)
         ),
         threading.Thread(
             target=download_file,
-            name="Document-Downloader",
+            name="Download-Thread-3",
             args=("document.pdf",)
         ),
     ]
@@ -84,47 +45,121 @@ def scenario_2():
     return {
         "method": "thread",
         "section": 2,
-        "scenario": 2,
-        "title": "Named Downloader Threads",
+        "scenario": 1,
+        "title": "Download Manager with Current Thread Detection",
         "output": output,
         "explanation":
-            "در این سناریو برای هر دانلودر یک نام مشخص انتخاب شده است. این کار باعث می‌شود لاگ‌های برنامه خواناتر شوند و مشخص باشد هر فایل توسط کدام thread دانلود شده است."
+            "در این سناریو چند فایل به صورت همزمان دانلود می‌شوند. داخل تابع download_file با threading.current_thread مشخص می‌کنیم همان لحظه کدام Thread در حال اجرای تابع است."
+    }
+
+
+def scenario_2():
+    output = []
+
+    def background_download(file_name):
+        current_thread = threading.current_thread()
+
+        output.append(
+            f"{current_thread.name} started downloading {file_name}"
+        )
+
+        time.sleep(1)
+
+        output.append(
+            f"{current_thread.name} finished downloading {file_name}"
+        )
+
+    threads = [
+        threading.Thread(
+            target=background_download,
+            name="Monitor-Download-Image",
+            args=("image.png",)
+        ),
+        threading.Thread(
+            target=background_download,
+            name="Monitor-Download-Video",
+            args=("video.mp4",)
+        ),
+        threading.Thread(
+            target=background_download,
+            name="Monitor-Download-Document",
+            args=("document.pdf",)
+        ),
+    ]
+
+    for thread in threads:
+        thread.start()
+
+    time.sleep(0.2)
+
+    output.append("Active threads detected by monitoring dashboard:")
+
+    active_threads = threading.enumerate()
+
+    for active_thread in active_threads:
+        output.append(
+            f"- {active_thread.name}"
+        )
+
+    for thread in threads:
+        thread.join()
+
+    output.append("Monitoring dashboard finished checking active threads")
+
+    return {
+        "method": "thread",
+        "section": 2,
+        "scenario": 2,
+        "title": "Thread Monitoring Dashboard with enumerate",
+        "output": output,
+        "explanation":
+            "در این سناریو چند Thread در حال دانلود فایل هستند و همزمان با threading.enumerate لیست Threadهای فعال گرفته می‌شود. این سناریو نشان می‌دهد چطور می‌توان برای مانیتورینگ یا دیباگ، Threadهای فعال برنامه را مشاهده کرد."
     }
 
 
 def scenario_3():
     output = []
 
-    def download_file(file_name, file_size, download_time):
+    main_thread = threading.current_thread()
+
+    output.append(
+        f"Program started in {main_thread.name}"
+    )
+
+    def worker_task(task_name):
         current_thread = threading.current_thread()
 
         output.append(
-            f"{current_thread.name} started {file_name} ({file_size} MB)"
+            f"{task_name} started in {current_thread.name}"
         )
 
-        time.sleep(download_time)
+        time.sleep(0.4)
 
         output.append(
-            f"{current_thread.name} completed {file_name} after {download_time} seconds"
+            f"{task_name} completed in {current_thread.name}"
         )
 
     threads = [
         threading.Thread(
-            target=download_file,
-            name="Small-File-Thread",
-            args=("icon.png", 2, 0.2)
+            target=worker_task,
+            name="Worker-Backup-Thread",
+            args=("Database Backup",)
         ),
         threading.Thread(
-            target=download_file,
-            name="Medium-File-Thread",
-            args=("report.pdf", 25, 0.6)
+            target=worker_task,
+            name="Worker-Email-Thread",
+            args=("Email Notification",)
         ),
         threading.Thread(
-            target=download_file,
-            name="Large-File-Thread",
-            args=("movie.mp4", 700, 1)
+            target=worker_task,
+            name="Worker-Report-Thread",
+            args=("Report Generation",)
         ),
     ]
+
+    output.append(
+        "MainThread is responsible for creating and starting worker threads"
+    )
 
     for thread in threads:
         thread.start()
@@ -132,12 +167,16 @@ def scenario_3():
     for thread in threads:
         thread.join()
 
+    output.append(
+        f"All workers finished. Control returned to {main_thread.name}"
+    )
+
     return {
         "method": "thread",
         "section": 2,
         "scenario": 3,
-        "title": "Download System with Different File Sizes",
+        "title": "Main Thread and Worker Thread Detection",
         "output": output,
         "explanation":
-            "در این سناریو فایل‌ها اندازه‌های متفاوتی دارند و زمان دانلود آن‌ها متفاوت است. خروجی نشان می‌دهد هر thread چه فایلی را شروع و چه زمانی تمام کرده است."
+            "در این سناریو ابتدا Thread اصلی برنامه با threading.current_thread تشخیص داده می‌شود. سپس چند Worker Thread ساخته و اجرا می‌شوند. خروجی نشان می‌دهد MainThread وظیفه ایجاد و مدیریت Workerها را دارد و Workerها وظایف جداگانه را انجام می‌دهند."
     }

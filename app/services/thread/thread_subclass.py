@@ -1,128 +1,195 @@
 import threading
 import time
-import os
 import random
-
-
-class WarehouseRobot(threading.Thread):
-
-    def __init__(self, robot_number, task_name, delay, output):
-        super().__init__()
-        self.robot_number = robot_number
-        self.task_name = task_name
-        self.delay = delay
-        self.output = output
-
-    def run(self):
-        self.output.append(
-            f"Robot #{self.robot_number} started {self.task_name} in process ID {os.getpid()}"
-        )
-
-        time.sleep(self.delay)
-
-        self.output.append(
-            f"Robot #{self.robot_number} completed {self.task_name}"
-        )
 
 
 def scenario_1():
     output = []
-    robots = []
 
-    for i in range(1, 10):
-        robot = WarehouseRobot(
-            robot_number=i,
-            task_name="moving a package",
-            delay=0.4,
-            output=output
-        )
+    class BaggageSortingLine(threading.Thread):
 
-        robots.append(robot)
-        robot.start()
+        def __init__(self, line_number, bag_count):
+            super().__init__()
+            self.line_number = line_number
+            self.bag_count = bag_count
 
-    for robot in robots:
-        robot.join()
+        def run(self):
+            output.append(
+                f"Sorting Line #{self.line_number} started processing {self.bag_count} baggage item(s)"
+            )
 
-    output.append("All warehouse robots finished their tasks")
+            for bag_number in range(1, self.bag_count + 1):
+                time.sleep(0.15)
+
+                output.append(
+                    f"Sorting Line #{self.line_number} sorted baggage #{bag_number}"
+                )
+
+            output.append(
+                f"Sorting Line #{self.line_number} finished its baggage queue"
+            )
+
+    sorting_lines = [
+        BaggageSortingLine(1, 3),
+        BaggageSortingLine(2, 4),
+        BaggageSortingLine(3, 2),
+    ]
+
+    for line in sorting_lines:
+        line.start()
+
+    for line in sorting_lines:
+        line.join()
+
+    output.append("Airport baggage sorting completed")
 
     return {
         "method": "thread",
         "section": 3,
         "scenario": 1,
-        "title": "Warehouse Robots as Thread Subclasses",
+        "title": "Airport Baggage Sorting Lines as Thread Subclasses",
         "output": output,
         "explanation":
-            "در این سناریو هر ربات انبار به صورت یک کلاس مستقل از threading.Thread ساخته شده است. هر ربات متد run مخصوص خودش را اجرا می‌کند و همه ربات‌ها داخل یک process مشترک کار می‌کنند."
+            "در این سناریو هر خط تفکیک بار فرودگاه به صورت یک کلاس جدا از threading.Thread پیاده‌سازی شده است. با بازنویسی متد run، هر خط تفکیک هنگام start شدن وظیفه خودش را اجرا می‌کند. این سناریو مفهوم پایه‌ای ساخت Thread Subclass را نشان می‌دهد."
     }
 
 
 def scenario_2():
     output = []
-    robots = []
 
-    tasks = [
-        "moving a package",
-        "scanning a barcode",
-        "checking shelf inventory",
-        "delivering a box",
-        "sorting products",
-        "charging station check",
-        "loading a cart",
-        "placing an item on shelf",
-        "packing an order",
+    class DeliveryVehicle(threading.Thread):
+
+        def __init__(self, vehicle_id, packages):
+            super().__init__()
+            self.vehicle_id = vehicle_id
+            self.packages = packages
+            self.delivered_packages = 0
+            self.failed_deliveries = 0
+
+        def run(self):
+            output.append(
+                f"Vehicle #{self.vehicle_id} started route with {len(self.packages)} package(s)"
+            )
+
+            for package in self.packages:
+                time.sleep(
+                    random.uniform(0.1, 0.35)
+                )
+
+                delivered = random.choice([True, True, False])
+
+                if delivered:
+                    self.delivered_packages += 1
+
+                    output.append(
+                        f"Vehicle #{self.vehicle_id} delivered package {package}"
+                    )
+                else:
+                    self.failed_deliveries += 1
+
+                    output.append(
+                        f"Vehicle #{self.vehicle_id} failed to deliver package {package}"
+                    )
+
+            output.append(
+                f"Vehicle #{self.vehicle_id} summary: delivered={self.delivered_packages}, failed={self.failed_deliveries}"
+            )
+
+    vehicles = [
+        DeliveryVehicle(1, ["A101", "A102", "A103"]),
+        DeliveryVehicle(2, ["B201", "B202"]),
+        DeliveryVehicle(3, ["C301", "C302", "C303", "C304"]),
     ]
 
-    for i in range(1, 10):
-        delay = round(random.uniform(0.2, 1.0), 2)
+    for vehicle in vehicles:
+        vehicle.start()
 
-        robot = WarehouseRobot(
-            robot_number=i,
-            task_name=tasks[i - 1],
-            delay=delay,
-            output=output
-        )
+    for vehicle in vehicles:
+        vehicle.join()
 
-        robots.append(robot)
-        robot.start()
-
-    for robot in robots:
-        robot.join()
-
-    output.append("Warehouse task queue completed")
+    output.append("Delivery tracking finished for all vehicles")
 
     return {
         "method": "thread",
         "section": 3,
         "scenario": 2,
-        "title": "Warehouse Robots with Different Task Durations",
+        "title": "Delivery Tracking System with Stateful Thread Objects",
         "output": output,
         "explanation":
-            "در این سناریو هر ربات وظیفه متفاوتی دارد و زمان انجام کارها یکسان نیست. چون ربات‌ها همزمان اجرا می‌شوند، ترتیب پایان کار آن‌ها به مدت زمان هر وظیفه بستگی دارد."
+            "در این سناریو هر خودروی ارسال مرسوله یک Thread مستقل است و وضعیت داخلی خودش را نگه می‌دارد؛ مثل تعداد بسته‌های موفق و ناموفق. این نشان می‌دهد وقتی از Thread Subclass استفاده می‌کنیم، هر Thread می‌تواند علاوه بر اجرای run، داده‌ها و state مخصوص خودش را داشته باشد."
     }
 
 
 def scenario_3():
     output = []
 
-    for i in range(1, 10):
-        robot = WarehouseRobot(
-            robot_number=i,
-            task_name="single-lane package handling",
-            delay=0.2,
-            output=output
-        )
+    class ProductionLine(threading.Thread):
 
-        robot.start()
-        robot.join()
+        def __init__(self, line_id, product_count):
+            super().__init__()
+            self.line_id = line_id
+            self.product_count = product_count
+            self.completed_products = 0
 
-    output.append("Single-lane warehouse processing completed")
+        def initialize_line(self):
+            output.append(
+                f"Production Line #{self.line_id}: initialization started"
+            )
+
+            time.sleep(0.15)
+
+            output.append(
+                f"Production Line #{self.line_id}: initialization completed"
+            )
+
+        def assemble_product(self, product_number):
+            output.append(
+                f"Production Line #{self.line_id}: assembling product #{product_number}"
+            )
+
+            time.sleep(0.2)
+
+            self.completed_products += 1
+
+        def quality_check(self):
+            output.append(
+                f"Production Line #{self.line_id}: quality check passed for {self.completed_products} product(s)"
+            )
+
+        def shutdown_line(self):
+            output.append(
+                f"Production Line #{self.line_id}: shutdown completed"
+            )
+
+        def run(self):
+            self.initialize_line()
+
+            for product_number in range(1, self.product_count + 1):
+                self.assemble_product(product_number)
+
+            self.quality_check()
+            self.shutdown_line()
+
+    production_lines = [
+        ProductionLine(1, 2),
+        ProductionLine(2, 3),
+        ProductionLine(3, 2),
+    ]
+
+    for line in production_lines:
+        line.start()
+
+    for line in production_lines:
+        line.join()
+
+    output.append("Smart factory production workflow completed")
 
     return {
         "method": "thread",
         "section": 3,
         "scenario": 3,
-        "title": "Warehouse Robots in Single-lane Mode",
+        "title": "Smart Factory Production Line with Helper Methods",
         "output": output,
         "explanation":
-            "در این سناریو ربات‌ها هنوز با subclass از Thread ساخته شده‌اند، اما بعد از start هر ربات بلافاصله join اجرا می‌شود. بنابراین ربات بعدی تا پایان کار ربات قبلی شروع نمی‌شود و عملیات ترتیبی انجام می‌شود."
+            "در این سناریو هر خط تولید کارخانه هوشمند یک Thread سفارشی است. منطق کلاس فقط در متد run خلاصه نشده و متدهای کمکی initialize_line، assemble_product، quality_check و shutdown_line دارد. این سناریو طراحی شیءگرای Threadها را نشان می‌دهد."
     }

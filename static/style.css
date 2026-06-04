@@ -10,7 +10,7 @@ body {
 }
 
 body {
-    font-family: Tahoma, Arial, sans-serif;
+    font-family: Vazir, Arial, sans-serif;
     background:
         radial-gradient(circle at top left, #2563eb 0%, transparent 30%),
         linear-gradient(135deg, #0f172a, #111827);
@@ -174,8 +174,6 @@ button {
 .result-header p {
     margin: 0;
     color: #94a3b8;
-    direction: ltr;
-    text-align: left;
 }
 
 .log-counter {

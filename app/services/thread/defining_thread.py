@@ -8,7 +8,7 @@ def scenario_1():
 
     def prepare_order(order_number):
         output.append(
-            f"Order #{order_number} assigned to a barista thread"
+            f"Order #{order_number} assigned to a separate barista thread"
         )
 
         time.sleep(0.2)
@@ -35,10 +35,10 @@ def scenario_1():
         "method": "thread",
         "section": 1,
         "scenario": 1,
-        "title": "Coffee Shop Online Orders - Parallel Preparation",
+        "title": "Coffee Shop Orders with Multiple Barista Threads",
         "output": output,
         "explanation":
-            "در این سناریو ۱۰ سفارش آنلاین وارد کافی‌شاپ شده‌اند. برای هر سفارش یک thread جدا ساخته می‌شود تا سفارش‌ها به صورت همزمان آماده شوند. این حالت مفهوم ساختن thread را نشان می‌دهد."
+            "در این سناریو کافی‌شاپ چند سفارش آنلاین دریافت کرده است. برای هر سفارش یک Thread جدا ساخته می‌شود تا سفارش‌ها به صورت همزمان آماده شوند. این سناریو مفهوم ساخت و اجرای Thread را نشان می‌دهد."
     }
 
 
@@ -82,7 +82,7 @@ def scenario_2():
         "title": "Coffee Shop Orders with Different Preparation Times",
         "output": output,
         "explanation":
-            "در این سناریو سفارش‌ها زمان آماده‌سازی متفاوتی دارند. چون همه سفارش‌ها با threadهای جدا اجرا می‌شوند، سفارش‌های سبک‌تر زودتر تمام می‌شوند و ترتیب خروجی ممکن است با شماره سفارش‌ها یکی نباشد."
+            "در این سناریو هر سفارش زمان آماده‌سازی متفاوتی دارد. چون همه سفارش‌ها در Threadهای جدا اجرا می‌شوند، سفارش‌های سریع‌تر زودتر تمام می‌شوند و ترتیب پایان کار ممکن است با ترتیب شماره سفارش‌ها یکسان نباشد."
     }
 
 
@@ -91,7 +91,7 @@ def scenario_3():
 
     def prepare_order(order_number):
         output.append(
-            f"Single barista started Order #{order_number}"
+            f"Single barista started preparing Order #{order_number}"
         )
 
         time.sleep(0.2)
@@ -113,8 +113,8 @@ def scenario_3():
         "method": "thread",
         "section": 1,
         "scenario": 3,
-        "title": "Coffee Shop with One Barista - Sequential Preparation",
+        "title": "Single-Barista Coffee Shop with Sequential Orders",
         "output": output,
         "explanation":
-            "در این سناریو برای هر سفارش هنوز یک thread ساخته می‌شود، اما چون فقط یک باریستا داریم، بعد از start هر thread بلافاصله join اجرا می‌شود. بنابراین سفارش بعدی تا پایان سفارش قبلی شروع نمی‌شود و اجرا ترتیبی است."
+            "در این سناریو کافی‌شاپ فقط یک باریستا دارد. برای هر سفارش همچنان یک Thread ساخته می‌شود، اما بعد از start بلافاصله join اجرا می‌شود. بنابراین سفارش بعدی تا پایان سفارش قبلی شروع نمی‌شود و خروجی به صورت ترتیبی تولید می‌شود."
     }

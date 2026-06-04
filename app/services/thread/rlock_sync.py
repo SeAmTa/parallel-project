@@ -5,36 +5,38 @@ import time
 def scenario_1():
     output = []
     rlock = threading.RLock()
-    available_seats = ["A1", "A2", "A3"]
+    inventory = {
+        "laptop": 1
+    }
 
-    def check_seat(seat_code):
+    def check_inventory(product_name):
         with rlock:
             output.append(
-                f"Checking availability for seat {seat_code}"
+                f"Checking inventory for {product_name}"
             )
 
-            return seat_code in available_seats
+            return inventory.get(product_name, 0) > 0
 
-    def reserve_seat(seat_code):
+    def place_order(product_name):
         with rlock:
             output.append(
-                f"Reservation process started for seat {seat_code}"
+                f"Order process started for {product_name}"
             )
 
-            if check_seat(seat_code):
-                available_seats.remove(seat_code)
+            if check_inventory(product_name):
+                inventory[product_name] -= 1
 
                 output.append(
-                    f"Seat {seat_code} reserved successfully"
+                    f"Order placed successfully for {product_name}"
                 )
             else:
                 output.append(
-                    f"Seat {seat_code} is not available"
+                    f"Order failed: {product_name} is out of stock"
                 )
 
     thread = threading.Thread(
-        target=reserve_seat,
-        args=("A1",)
+        target=place_order,
+        args=("laptop",)
     )
 
     thread.start()
@@ -44,103 +46,141 @@ def scenario_1():
         "method": "thread",
         "section": 5,
         "scenario": 1,
-        "title": "Cinema Seat Reservation with Nested Lock",
+        "title": "Online Store Order Processing with Nested RLock",
         "output": output,
         "explanation":
-            "در این سناریو فرایند رزرو صندلی سینما خودش قفل را می‌گیرد و داخل آن تابع بررسی صندلی دوباره همان قفل را می‌گیرد. چون از RLock استفاده شده، همان thread می‌تواند چند بار قفل را دریافت کند و deadlock رخ نمی‌دهد."
+            "در این سناریو تابع place_order قفل را می‌گیرد و داخل آن تابع check_inventory دوباره همان قفل را دریافت می‌کند. اگر از Lock معمولی استفاده می‌شد، همان thread هنگام ورود به تابع داخلی منتظر خودش می‌ماند و deadlock رخ می‌داد. RLock اجازه می‌دهد همان thread چند بار یک قفل را بگیرد."
     }
 
 
 def scenario_2():
     output = []
     rlock = threading.RLock()
-    available_seats = ["A1", "A2", "A3", "A4", "A5"]
+    loan_requests = {
+        "documents_valid": True,
+        "credit_score": 720,
+        "approved": False
+    }
 
-    def reserve_next_seat(user_number):
+    def approve_loan():
         with rlock:
             output.append(
-                f"User #{user_number} is trying to reserve a cinema seat"
+                "approve_loan: final approval step started"
+            )
+
+            loan_requests["approved"] = True
+
+            output.append(
+                "approve_loan: loan request approved"
+            )
+
+    def calculate_score():
+        with rlock:
+            output.append(
+                "calculate_score: checking customer credit score"
             )
 
             time.sleep(0.2)
 
-            if available_seats:
-                seat = available_seats.pop(0)
-
+            if loan_requests["credit_score"] >= 650:
                 output.append(
-                    f"User #{user_number} reserved seat {seat}"
+                    "calculate_score: credit score is acceptable"
                 )
+
+                approve_loan()
             else:
                 output.append(
-                    f"User #{user_number} could not reserve a seat"
+                    "calculate_score: credit score is too low"
                 )
 
-    threads = []
+    def validate_documents():
+        with rlock:
+            output.append(
+                "validate_documents: validating uploaded documents"
+            )
 
-    for i in range(1, 9):
-        thread = threading.Thread(
-            target=reserve_next_seat,
-            args=(i,)
-        )
+            time.sleep(0.2)
 
-        threads.append(thread)
-        thread.start()
+            if loan_requests["documents_valid"]:
+                output.append(
+                    "validate_documents: documents are valid"
+                )
 
-    for thread in threads:
-        thread.join()
+                calculate_score()
+            else:
+                output.append(
+                    "validate_documents: documents are invalid"
+                )
 
-    output.append(
-        f"Remaining seats: {available_seats}"
+    def process_loan():
+        with rlock:
+            output.append(
+                "process_loan: loan workflow started"
+            )
+
+            validate_documents()
+
+            output.append(
+                "process_loan: workflow finished"
+            )
+
+    thread = threading.Thread(
+        target=process_loan
     )
+
+    thread.start()
+    thread.join()
 
     return {
         "method": "thread",
         "section": 5,
         "scenario": 2,
-        "title": "Concurrent Cinema Seat Reservation",
+        "title": "Loan Approval Workflow with Multi-level RLock",
         "output": output,
         "explanation":
-            "در این سناریو چند کاربر همزمان برای رزرو صندلی اقدام می‌کنند. RLock از لیست صندلی‌های باقی‌مانده محافظت می‌کند تا دو کاربر نتوانند یک صندلی یکسان را رزرو کنند."
+            "در این سناریو یک فرایند چندمرحله‌ای داریم: process_loan، validate_documents، calculate_score و approve_loan. همه این توابع روی داده مشترک درخواست وام کار می‌کنند و هرکدام همان RLock را می‌گیرند. این سناریو نشان می‌دهد RLock برای زنجیره فراخوانی‌های تو در تو مناسب است."
     }
 
 
 def scenario_3():
     output = []
     rlock = threading.RLock()
-    available_seats = ["B1", "B2", "B3"]
 
-    def print_ticket(user_number, seat_code):
+    folder_tree = {
+        "root": {
+            "images": {
+                "vacation": {}
+            },
+            "documents": {
+                "university": {}
+            }
+        }
+    }
+
+    def scan_folder(folder_name, children, depth=0):
         with rlock:
+            indent = "  " * depth
+
             output.append(
-                f"Ticket printed for User #{user_number}, Seat {seat_code}"
+                f"{indent}Scanning folder: {folder_name}"
             )
 
-    def confirm_reservation(user_number, seat_code):
-        with rlock:
-            output.append(
-                f"Reservation confirmed for User #{user_number}, Seat {seat_code}"
-            )
+            time.sleep(0.1)
 
-            print_ticket(user_number, seat_code)
-
-    def reserve_seat(user_number, seat_code):
-        with rlock:
-            output.append(
-                f"User #{user_number} selected Seat {seat_code}"
-            )
-
-            if seat_code in available_seats:
-                available_seats.remove(seat_code)
-
-                confirm_reservation(user_number, seat_code)
-            else:
-                output.append(
-                    f"Seat {seat_code} is already taken"
+            for child_name, child_children in children.items():
+                scan_folder(
+                    child_name,
+                    child_children,
+                    depth + 1
                 )
 
+            output.append(
+                f"{indent}Finished folder: {folder_name}"
+            )
+
     thread = threading.Thread(
-        target=reserve_seat,
-        args=(1, "B2")
+        target=scan_folder,
+        args=("root", folder_tree["root"])
     )
 
     thread.start()
@@ -150,8 +190,8 @@ def scenario_3():
         "method": "thread",
         "section": 5,
         "scenario": 3,
-        "title": "Cinema Reservation with Multi-step Nested Operations",
+        "title": "Recursive Folder Scanner with RLock",
         "output": output,
         "explanation":
-            "در این سناریو رزرو صندلی شامل چند مرحله تو در تو است: انتخاب صندلی، تأیید رزرو و چاپ بلیت. همه این مراحل از همان RLock استفاده می‌کنند و چون قفل بازگشتی است، همان thread می‌تواند بدون deadlock وارد مراحل داخلی شود."
+            "در این سناریو تابع scan_folder به صورت بازگشتی پوشه‌های تو در تو را پیمایش می‌کند. هر بار که تابع دوباره خودش را صدا می‌زند، همان thread دوباره همان RLock را دریافت می‌کند. این رفتار با RLock مجاز است و برای عملیات بازگشتی که به قفل مشترک نیاز دارند کاربرد دارد."
     }

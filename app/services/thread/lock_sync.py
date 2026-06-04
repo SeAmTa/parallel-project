@@ -1,30 +1,38 @@
 import threading
 import time
-import os
-import random
 
 
 def scenario_1():
     output = []
-    lock = threading.Lock()
+    tickets_left = 1
+    sold_to = []
 
-    def technician_access(technician_number):
-        with lock:
+    def buy_ticket(customer_number):
+        nonlocal tickets_left
+
+        output.append(
+            f"Customer #{customer_number} is trying to buy the last ticket"
+        )
+
+        if tickets_left > 0:
+            time.sleep(0.1)
+
+            tickets_left -= 1
+            sold_to.append(customer_number)
+
             output.append(
-                f"Technician #{technician_number} entered the server room"
+                f"Customer #{customer_number} thinks they bought the last ticket"
             )
-
-            time.sleep(0.5)
-
+        else:
             output.append(
-                f"Technician #{technician_number} left the server room"
+                f"Customer #{customer_number} could not buy a ticket"
             )
 
     threads = []
 
-    for i in range(1, 10):
+    for i in range(1, 11):
         thread = threading.Thread(
-            target=technician_access,
+            target=buy_ticket,
             args=(i,)
         )
 
@@ -34,46 +42,57 @@ def scenario_1():
     for thread in threads:
         thread.join()
 
-    output.append("Server room access log completed")
+    output.append(f"Tickets left: {tickets_left}")
+    output.append(f"Customers marked as buyers: {sold_to}")
 
     return {
         "method": "thread",
         "section": 4,
         "scenario": 1,
-        "title": "Server Room Access Control with Lock",
+        "title": "Concert Ticket Sale Without Reservation Lock",
         "output": output,
         "explanation":
-            "در این سناریو چند تکنسین می‌خواهند وارد اتاق سرور شوند. چون اتاق سرور حساس است، با Lock فقط یک تکنسین در هر لحظه اجازه ورود دارد."
+            "در این سناریو فقط یک بلیت باقی مانده است، اما چند مشتری همزمان تلاش می‌کنند آن را بخرند. چون از Lock استفاده نشده، چند thread ممکن است قبل از کم شدن مقدار بلیت، مقدار قبلی را ببینند و فکر کنند خرید موفق بوده است. این حالت Race Condition را نشان می‌دهد."
     }
 
 
 def scenario_2():
     output = []
+    tickets_left = 1
+    sold_to = []
     lock = threading.Lock()
 
-    def technician_access(technician_number):
+    def buy_ticket(customer_number):
+        nonlocal tickets_left
+
         output.append(
-            f"Technician #{technician_number} requested access to the server room"
+            f"Customer #{customer_number} is waiting for reservation lock"
         )
 
         with lock:
             output.append(
-                f"Technician #{technician_number} access approved"
+                f"Customer #{customer_number} entered reservation system"
             )
 
-            time.sleep(
-                random.uniform(0.2, 0.8)
-            )
+            if tickets_left > 0:
+                time.sleep(0.1)
 
-            output.append(
-                f"Technician #{technician_number} completed maintenance and exited"
-            )
+                tickets_left -= 1
+                sold_to.append(customer_number)
+
+                output.append(
+                    f"Customer #{customer_number} successfully bought the last ticket"
+                )
+            else:
+                output.append(
+                    f"Customer #{customer_number} failed: no ticket left"
+                )
 
     threads = []
 
-    for i in range(1, 10):
+    for i in range(1, 11):
         thread = threading.Thread(
-            target=technician_access,
+            target=buy_ticket,
             args=(i,)
         )
 
@@ -83,40 +102,50 @@ def scenario_2():
     for thread in threads:
         thread.join()
 
-    output.append("All access requests were processed safely")
+    output.append(f"Tickets left: {tickets_left}")
+    output.append(f"Final buyer list: {sold_to}")
 
     return {
         "method": "thread",
         "section": 4,
         "scenario": 2,
-        "title": "Server Room Access Queue with Lock",
+        "title": "Concert Ticket Sale With Reservation Lock",
         "output": output,
         "explanation":
-            "در این سناریو همه تکنسین‌ها ابتدا درخواست ورود ثبت می‌کنند. سپس Lock باعث می‌شود درخواست‌ها یکی‌یکی وارد بخش حساس شوند و دسترسی همزمان اتفاق نیفتد."
+            "این سناریو همان فروش آخرین بلیت را اجرا می‌کند، اما بخش بررسی و کم کردن تعداد بلیت داخل Lock قرار گرفته است. بنابراین فقط یک مشتری می‌تواند وارد بخش بحرانی شود و فقط یک نفر بلیت را می‌خرد."
     }
 
 
 def scenario_3():
     output = []
+    lock = threading.Lock()
+    central_log = []
 
-    def technician_access(technician_number):
+    def atm_transaction(atm_number):
         output.append(
-            f"WARNING: Technician #{technician_number} entered without access lock"
+            f"ATM #{atm_number} is preparing a transaction log"
         )
 
-        time.sleep(
-            random.uniform(0.2, 0.8)
-        )
+        with lock:
+            output.append(
+                f"ATM #{atm_number} is writing to the central log"
+            )
 
-        output.append(
-            f"Technician #{technician_number} left without controlled access"
-        )
+            central_log.append(
+                f"Transaction log written by ATM #{atm_number}"
+            )
+
+            time.sleep(0.2)
+
+            output.append(
+                f"ATM #{atm_number} finished writing"
+            )
 
     threads = []
 
-    for i in range(1, 10):
+    for i in range(1, 8):
         thread = threading.Thread(
-            target=technician_access,
+            target=atm_transaction,
             args=(i,)
         )
 
@@ -126,14 +155,15 @@ def scenario_3():
     for thread in threads:
         thread.join()
 
-    output.append("Unsafe access simulation completed")
+    output.append("Final central transaction log:")
+    output.extend(central_log)
 
     return {
         "method": "thread",
         "section": 4,
         "scenario": 3,
-        "title": "Server Room Access Without Lock",
+        "title": "Central Transaction Log Protected by Lock",
         "output": output,
         "explanation":
-            "در این سناریو عمداً Lock حذف شده است. بنابراین چند تکنسین می‌توانند همزمان وارد اتاق سرور شوند و ترتیب خروجی‌ها قابل پیش‌بینی نیست. این حالت نشان می‌دهد چرا برای منابع حساس به Lock نیاز داریم."
+            "در این سناریو چند دستگاه ATM همزمان می‌خواهند داخل یک لاگ مرکزی بنویسند. نوشتن در لاگ یک منبع مشترک است، پس با Lock محافظت شده تا در هر لحظه فقط یک thread وارد بخش نوشتن شود."
     }
