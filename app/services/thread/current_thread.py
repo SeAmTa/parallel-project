@@ -47,6 +47,13 @@ def scenario_1():
         "section": 2,
         "scenario": 1,
         "title": "Download Manager with Current Thread Detection",
+        "problem":
+            "شرح مسئله:\n"
+            "یک برنامه مدیریت دانلود باید چند فایل را به صورت همزمان دریافت کند. برای بررسی لاگ‌ها لازم است مشخص شود هر فایل توسط کدام Thread پردازش شده است.\n\n"
+            "سؤال:\n"
+            "چگونه می‌توان داخل یک تابع فهمید همان لحظه کدام Thread در حال اجرای آن تابع است؟\n\n"
+            "مفهوم مورد بررسی:\n"
+            "استفاده از threading.current_thread",
         "output": output,
         "explanation":
             "در این سناریو چند فایل به صورت همزمان دانلود می‌شوند. داخل تابع download_file با threading.current_thread مشخص می‌کنیم همان لحظه کدام Thread در حال اجرای تابع است."
@@ -111,6 +118,13 @@ def scenario_2():
         "section": 2,
         "scenario": 2,
         "title": "Thread Monitoring Dashboard with enumerate",
+        "problem":
+            "شرح مسئله:\n"
+            "در یک سیستم مانیتورینگ، چند عملیات دانلود در پس‌زمینه در حال اجرا هستند. مدیر سیستم می‌خواهد در زمان اجرا بداند چه Threadهایی فعال هستند.\n\n"
+            "سؤال:\n"
+            "چگونه می‌توان لیست Threadهای فعال برنامه را در همان لحظه مشاهده کرد؟\n\n"
+            "مفهوم مورد بررسی:\n"
+            "استفاده از threading.enumerate و نام‌گذاری Threadها",
         "output": output,
         "explanation":
             "در این سناریو چند Thread در حال دانلود فایل هستند و همزمان با threading.enumerate لیست Threadهای فعال گرفته می‌شود. این سناریو نشان می‌دهد چطور می‌توان برای مانیتورینگ یا دیباگ، Threadهای فعال برنامه را مشاهده کرد."
@@ -176,6 +190,13 @@ def scenario_3():
         "section": 2,
         "scenario": 3,
         "title": "Main Thread and Worker Thread Detection",
+        "problem":
+            "شرح مسئله:\n"
+            "یک برنامه اصلی چند وظیفه پس‌زمینه مانند پشتیبان‌گیری، ارسال ایمیل و تولید گزارش را اجرا می‌کند. لازم است تفاوت Thread اصلی برنامه و Worker Threadها مشخص شود.\n\n"
+            "سؤال:\n"
+            "چگونه می‌توان تشخیص داد کدام بخش از برنامه در MainThread اجرا می‌شود و کدام بخش در Worker Threadها؟\n\n"
+            "مفهوم مورد بررسی:\n"
+            "تشخیص MainThread و Worker Thread با threading.current_thread",
         "output": output,
         "explanation":
             "در این سناریو ابتدا Thread اصلی برنامه با threading.current_thread تشخیص داده می‌شود. سپس چند Worker Thread ساخته و اجرا می‌شوند. خروجی نشان می‌دهد MainThread وظیفه ایجاد و مدیریت Workerها را دارد و Workerها وظایف جداگانه را انجام می‌دهند."

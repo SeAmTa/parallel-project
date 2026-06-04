@@ -199,6 +199,27 @@ button {
     color: #94a3b8;
 }
 
+.problem-box {
+    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: 18px;
+    background: rgba(14, 165, 233, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.22);
+}
+
+.problem-box h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #7dd3fc;
+}
+
+.problem-box p {
+    margin: 0;
+    color: #dbeafe;
+    line-height: 2;
+    white-space: pre-line;
+}
+
 .terminal {
     border-radius: 18px;
     overflow: hidden;
@@ -265,6 +286,7 @@ pre {
     margin-bottom: 0;
     color: #cbd5e1;
     line-height: 2;
+    white-space: pre-line;
 }
 
 @media (max-width: 900px) {

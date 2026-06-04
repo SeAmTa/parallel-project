@@ -22,13 +22,8 @@
 
             <label>نوع موازی‌سازی</label>
             <select id="method">
-                <option value="" selected disabled>
-                    انتخاب کنید
-                </option>
-            
-                <option value="thread">
-                    Thread-Based Parallelism
-                </option>
+                <option value="" selected disabled>انتخاب کنید</option>
+                <option value="thread">Thread-Based Parallelism</option>
             </select>
 
             <label>بخش</label>
@@ -71,6 +66,11 @@
                     <span id="logCount">0</span>
                     <small>logs</small>
                 </div>
+            </div>
+
+            <div class="problem-box">
+                <h3>مسئله سناریو</h3>
+                <p id="problem">---</p>
             </div>
 
             <div class="terminal">
@@ -121,6 +121,7 @@ function runScenario() {
     const sectionTitleElement = document.getElementById("sectionTitle");
     const titleElement = document.getElementById("title");
     const metaElement = document.getElementById("meta");
+    const problemElement = document.getElementById("problem");
     const outputElement = document.getElementById("output");
     const explanationElement = document.getElementById("explanation");
     const logCountElement = document.getElementById("logCount");
@@ -135,6 +136,7 @@ function runScenario() {
     sectionTitleElement.innerText = SECTION_NAMES[section];
     titleElement.innerText = "در حال اجرا...";
     metaElement.innerText = `Method: ${method} | Section: ${section} | Scenario: ${scenario}`;
+    problemElement.innerText = "---";
     outputElement.innerText = "";
     explanationElement.innerText = "---";
     setStatus("Running");
@@ -147,6 +149,10 @@ function runScenario() {
 
         if (data.type === "title") {
             titleElement.innerText = data.message;
+        }
+
+        else if (data.type === "problem") {
+            problemElement.innerText = data.message;
         }
 
         else if (data.type === "log") {
