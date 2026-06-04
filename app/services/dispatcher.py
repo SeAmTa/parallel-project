@@ -1,0 +1,58 @@
+from app.services.thread.defining_thread import (
+    scenario_1 as defining_thread_scenario_1,
+    scenario_2 as defining_thread_scenario_2,
+    scenario_3 as defining_thread_scenario_3,
+)
+
+from app.services.thread.current_thread import (
+    scenario_1 as current_thread_scenario_1,
+    scenario_2 as current_thread_scenario_2,
+    scenario_3 as current_thread_scenario_3,
+)
+
+from app.services.thread.thread_subclass import (
+    scenario_1 as thread_subclass_scenario_1,
+    scenario_2 as thread_subclass_scenario_2,
+    scenario_3 as thread_subclass_scenario_3,
+)
+
+from app.services.thread.lock_sync import (
+    scenario_1 as lock_sync_scenario_1,
+    scenario_2 as lock_sync_scenario_2,
+    scenario_3 as lock_sync_scenario_3,
+)
+
+THREAD_SECTIONS = {
+    1: {
+        1: defining_thread_scenario_1,
+        2: defining_thread_scenario_2,
+        3: defining_thread_scenario_3,
+    },
+    
+    2: {
+        1: current_thread_scenario_1,
+        2: current_thread_scenario_2,
+        3: current_thread_scenario_3,
+    },
+
+    3: {
+        1: thread_subclass_scenario_1,
+        2: thread_subclass_scenario_2,
+        3: thread_subclass_scenario_3,
+    },
+
+    4: {
+        1: lock_sync_scenario_1,
+        2: lock_sync_scenario_2,
+        3: lock_sync_scenario_3,
+    },
+}
+
+
+def run_thread_scenario(section: int, scenario: int):
+    try:
+        return THREAD_SECTIONS[section][scenario]()
+    except KeyError:
+        return {
+            "error": "Section or Scenario not implemented"
+        }
