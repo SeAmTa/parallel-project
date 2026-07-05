@@ -34,6 +34,12 @@ from app.services.thread.semaphore_sync import (
     scenario_3 as semaphore_sync_scenario_3,
 )
 
+from app.services.thread.barrier_sync import (
+    scenario_1 as barrier_sync_scenario_1,
+    scenario_2 as barrier_sync_scenario_2,
+    scenario_3 as barrier_sync_scenario_3,
+)
+
 THREAD_SECTIONS = {
     1: {
         1: defining_thread_scenario_1,
@@ -69,6 +75,12 @@ THREAD_SECTIONS = {
         1: semaphore_sync_scenario_1,
         2: semaphore_sync_scenario_2,
         3: semaphore_sync_scenario_3,
+    },
+
+    7: {
+        1: barrier_sync_scenario_1,
+        2: barrier_sync_scenario_2,
+        3: barrier_sync_scenario_3,
     },
 }
 
