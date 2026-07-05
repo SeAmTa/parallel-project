@@ -66,6 +66,12 @@ from app.services.process.spawning_process import (
     scenario_3 as spawning_process_scenario_3,
 )
 
+from app.services.process.naming_process import (
+    scenario_1 as naming_process_scenario_1,
+    scenario_2 as naming_process_scenario_2,
+    scenario_3 as naming_process_scenario_3,
+)
+
 THREAD_SECTIONS = {
     1: {
         1: defining_thread_scenario_1,
@@ -133,6 +139,12 @@ PROCESS_SECTIONS = {
         1: spawning_process_scenario_1,
         2: spawning_process_scenario_2,
         3: spawning_process_scenario_3,
+    },
+
+    2: {
+        1: naming_process_scenario_1,
+        2: naming_process_scenario_2,
+        3: naming_process_scenario_3,
     },
 }
 
