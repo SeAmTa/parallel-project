@@ -90,6 +90,12 @@ from app.services.process.process_subclass import (
     scenario_3 as process_subclass_scenario_3,
 )
 
+from app.services.process.queue_exchange import (
+    scenario_1 as queue_exchange_scenario_1,
+    scenario_2 as queue_exchange_scenario_2,
+    scenario_3 as queue_exchange_scenario_3,
+)
+
 
 
 THREAD_SECTIONS = {
@@ -183,6 +189,12 @@ PROCESS_SECTIONS = {
         1: process_subclass_scenario_1,
         2: process_subclass_scenario_2,
         3: process_subclass_scenario_3,
+    },
+
+    6: {
+        1: queue_exchange_scenario_1,
+        2: queue_exchange_scenario_2,
+        3: queue_exchange_scenario_3,
     },
 }
 
