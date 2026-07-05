@@ -4,7 +4,10 @@ import json
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
-from app.services.dispatcher import run_thread_scenario
+from app.services.dispatcher import (
+    run_thread_scenario,
+    run_process_scenario,
+)
 
 router = APIRouter(
     prefix="/stream",
@@ -13,11 +16,13 @@ router = APIRouter(
 
 
 def event_generator(method: str, section: int, scenario: int):
-    if method != "thread":
-        yield f"data: {json.dumps({'type': 'error', 'message': 'Only thread is supported now'})}\n\n"
+    if method == "thread":
+        result = run_thread_scenario(section, scenario)
+    elif method == "process":
+        result = run_process_scenario(section, scenario)
+    else:
+        yield f"data: {json.dumps({'type': 'error', 'message': 'Invalid execution method'})}\n\n"
         return
-
-    result = run_thread_scenario(section, scenario)
 
     if "error" in result:
         yield f"data: {json.dumps({'type': 'error', 'message': result['error']})}\n\n"
@@ -26,7 +31,6 @@ def event_generator(method: str, section: int, scenario: int):
     yield f"data: {json.dumps({'type': 'title', 'message': result['title']})}\n\n"
     time.sleep(0.3)
 
-    # NEW
     yield f"data: {json.dumps({'type': 'problem', 'message': result['problem']})}\n\n"
     time.sleep(0.3)
 

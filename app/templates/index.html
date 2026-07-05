@@ -21,24 +21,15 @@
             <h2>تنظیمات اجرا</h2>
 
             <label>نوع موازی‌سازی</label>
-            <select id="method">
+            <select id="method" onchange="updateSections()">
                 <option value="" selected disabled>انتخاب کنید</option>
                 <option value="thread">Thread-Based Parallelism</option>
+                <option value="process">Process-Based Parallelism</option>
             </select>
 
             <label>بخش</label>
             <select id="section">
-                <option value="" selected disabled>انتخاب کنید</option>
-                <option value="1">1 - Defining a Thread</option>
-                <option value="2">2 - Determining the Current Thread</option>
-                <option value="3">3 - Defining a Thread Subclass</option>
-                <option value="4">4 - Thread Synchronization with Lock</option>
-                <option value="5">5 - Thread Synchronization with RLock</option>
-                <option value="6">6 - Thread Synchronization with Semaphore</option>
-                <option value="7">7 - Thread Synchronization with Barrier</option>
-                <option value="8">8 - Thread Synchronization with Event</option>
-                <option value="9">9 - Thread Synchronization with Condition</option>
-                <option value="10">10 - Thread Communication with Queue</option>
+                <option value="" selected disabled>ابتدا نوع اجرا را انتخاب کنید</option>
             </select>
 
             <label>سناریو</label>
@@ -99,7 +90,7 @@
 let eventSource = null;
 let logCount = 0;
 
-const SECTION_NAMES = {
+const THREAD_SECTION_NAMES = {
     "1": "Defining a Thread",
     "2": "Determining the Current Thread",
     "3": "Defining a Thread Subclass",
@@ -112,8 +103,65 @@ const SECTION_NAMES = {
     "10": "Thread Communication with Queue"
 };
 
+const PROCESS_SECTION_NAMES = {
+    "1": "Spawning a Process"
+};
+
 function setStatus(text) {
     document.getElementById("status").innerText = text;
+}
+
+function getSectionNames(method) {
+    if (method === "thread") {
+        return THREAD_SECTION_NAMES;
+    }
+
+    if (method === "process") {
+        return PROCESS_SECTION_NAMES;
+    }
+
+    return {};
+}
+
+function updateSections() {
+    const method = document.getElementById("method").value;
+    const sectionSelect = document.getElementById("section");
+
+    sectionSelect.innerHTML = "";
+
+    const defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.textContent = "انتخاب کنید";
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+
+    sectionSelect.appendChild(defaultOption);
+
+    const sections = getSectionNames(method);
+
+    Object.entries(sections).forEach(([sectionNumber, sectionName]) => {
+        const option = document.createElement("option");
+        option.value = sectionNumber;
+        option.textContent = `${sectionNumber} - ${sectionName}`;
+
+        sectionSelect.appendChild(option);
+    });
+
+    document.getElementById("sectionTitle").innerText = "Section not selected";
+    document.getElementById("title").innerText = "سناریویی اجرا نشده است";
+    document.getElementById("meta").innerText = "یک Section و Scenario انتخاب کن و اجرا را بزن.";
+    document.getElementById("problem").innerText = "---";
+    document.getElementById("output").innerText = "Waiting for execution...";
+    document.getElementById("explanation").innerText = "---";
+    document.getElementById("logCount").innerText = "0";
+
+    logCount = 0;
+    setStatus("Waiting For Selection");
+
+    if (eventSource !== null) {
+        eventSource.close();
+        eventSource = null;
+    }
 }
 
 function runScenario() {
@@ -125,6 +173,9 @@ function runScenario() {
         alert("لطفاً تمام فیلدها را انتخاب کنید.");
         return;
     }
+
+    const sectionNames = getSectionNames(method);
+    const sectionName = sectionNames[section] || "Unknown Section";
 
     const sectionTitleElement = document.getElementById("sectionTitle");
     const titleElement = document.getElementById("title");
@@ -141,12 +192,13 @@ function runScenario() {
     logCount = 0;
     logCountElement.innerText = "0";
 
-    sectionTitleElement.innerText = SECTION_NAMES[section];
+    sectionTitleElement.innerText = sectionName;
     titleElement.innerText = "در حال اجرا...";
     metaElement.innerText = `Method: ${method} | Section: ${section} | Scenario: ${scenario}`;
     problemElement.innerText = "---";
     outputElement.innerText = "";
     explanationElement.innerText = "---";
+
     setStatus("Running");
 
     const url = `/stream/${method}/${section}/${scenario}`;
@@ -180,13 +232,21 @@ function runScenario() {
             titleElement.innerText = "خطا";
             outputElement.innerText += data.message + "\n";
             setStatus("Error");
-            eventSource.close();
+
+            if (eventSource !== null) {
+                eventSource.close();
+                eventSource = null;
+            }
         }
 
         else if (data.type === "done") {
             outputElement.innerText += "\nExecution finished successfully.";
             setStatus("Finished");
-            eventSource.close();
+
+            if (eventSource !== null) {
+                eventSource.close();
+                eventSource = null;
+            }
         }
     };
 
@@ -195,6 +255,7 @@ function runScenario() {
 
         if (eventSource !== null) {
             eventSource.close();
+            eventSource = null;
         }
     };
 }
@@ -203,6 +264,7 @@ function stopScenario() {
     if (eventSource !== null) {
         eventSource.close();
         eventSource = null;
+
         setStatus("Stopped");
         document.getElementById("output").innerText += "\nLog streaming stopped by user.";
     }
