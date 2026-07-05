@@ -1,6 +1,5 @@
 import threading
 import time
-import random
 
 
 def scenario_1():
@@ -22,7 +21,8 @@ def scenario_1():
     for i in range(1, 11):
         thread = threading.Thread(
             target=prepare_order,
-            args=(i,)
+            args=(i,),
+            name=f"Barista-Thread-{i}"
         )
 
         threads.append(thread)
@@ -30,6 +30,8 @@ def scenario_1():
 
     for thread in threads:
         thread.join()
+
+    output.append("All order threads finished")
 
     return {
         "method": "thread",
@@ -43,38 +45,48 @@ def scenario_1():
             "سؤال:\n"
             "چگونه می‌توان چند سفارش مستقل را به صورت همزمان پردازش کرد؟\n\n"
             "مفهوم مورد بررسی:\n"
-            "ساخت و اجرای Thread",
+            "ساخت و اجرای Thread با threading.Thread",
         "output": output,
         "explanation":
-            "در این سناریو کافی‌شاپ چند سفارش آنلاین دریافت کرده است. برای هر سفارش یک Thread جدا ساخته می‌شود تا سفارش‌ها به صورت همزمان آماده شوند. این سناریو مفهوم ساخت و اجرای Thread را نشان می‌دهد."
+            "در این سناریو برای هر سفارش یک Thread جداگانه ساخته و اجرا می‌شود. "
+            "همه Threadها تقریباً همزمان start می‌شوند و برنامه با join منتظر می‌ماند تا همه آن‌ها تمام شوند. "
+            "این سناریو مفهوم پایه‌ای ساخت Thread، اجرای Thread و انتظار برای پایان همه Threadها را نشان می‌دهد."
     }
 
 
 def scenario_2():
     output = []
+    completion_order = []
 
-    def prepare_order(order_number):
-        preparation_time = round(
-            random.uniform(0.1, 1.0),
-            2
-        )
+    order_preparation_times = [
+        (1, 0.60),
+        (2, 0.20),
+        (3, 0.50),
+        (4, 0.10),
+        (5, 0.40),
+        (6, 0.30),
+    ]
 
+    def prepare_order(order_number, preparation_time):
         output.append(
-            f"Order #{order_number} started and needs {preparation_time} seconds"
+            f"Order #{order_number} started and needs {preparation_time:.2f} seconds"
         )
 
         time.sleep(preparation_time)
 
+        completion_order.append(order_number)
+
         output.append(
-            f"Order #{order_number} completed in {preparation_time} seconds"
+            f"Order #{order_number} completed after {preparation_time:.2f} seconds"
         )
 
     threads = []
 
-    for i in range(1, 11):
+    for order_number, preparation_time in order_preparation_times:
         thread = threading.Thread(
             target=prepare_order,
-            args=(i,)
+            args=(order_number, preparation_time),
+            name=f"Order-Thread-{order_number}"
         )
 
         threads.append(thread)
@@ -83,6 +95,14 @@ def scenario_2():
     for thread in threads:
         thread.join()
 
+    started_order = [
+        order_number
+        for order_number, _ in order_preparation_times
+    ]
+
+    output.append(f"Order start sequence: {started_order}")
+    output.append(f"Order completion sequence: {completion_order}")
+
     return {
         "method": "thread",
         "section": 1,
@@ -90,14 +110,17 @@ def scenario_2():
         "title": "Coffee Shop Orders with Different Preparation Times",
         "problem":
             "شرح مسئله:\n"
-            "در کافی‌شاپ، زمان آماده‌سازی سفارش‌ها یکسان نیست. بعضی سفارش‌ها ساده هستند و سریع آماده می‌شوند، اما بعضی سفارش‌ها زمان بیشتری نیاز دارند.\n\n"
+            "در کافی‌شاپ، زمان آماده‌سازی سفارش‌ها یکسان نیست. بعضی سفارش‌ها ساده هستند و سریع آماده می‌شوند، "
+            "اما بعضی سفارش‌ها زمان بیشتری نیاز دارند. همه سفارش‌ها تقریباً همزمان شروع می‌شوند.\n\n"
             "سؤال:\n"
-            "اگر همه سفارش‌ها همزمان شروع شوند، آیا ترتیب پایان آن‌ها الزاماً با ترتیب ثبت سفارش‌ها یکی خواهد بود؟\n\n"
+            "اگر چند Thread به ترتیب مشخصی start شوند، آیا ترتیب پایان آن‌ها هم الزاماً همان ترتیب شروع خواهد بود؟\n\n"
             "مفهوم مورد بررسی:\n"
-            "اجرای همزمان Threadها و غیرقابل پیش‌بینی بودن ترتیب پایان",
+            "اجرای همزمان Threadها و تفاوت ترتیب شروع با ترتیب پایان",
         "output": output,
         "explanation":
-            "در این سناریو هر سفارش زمان آماده‌سازی متفاوتی دارد. چون همه سفارش‌ها در Threadهای جدا اجرا می‌شوند، سفارش‌های سریع‌تر زودتر تمام می‌شوند و ترتیب پایان کار ممکن است با ترتیب شماره سفارش‌ها یکسان نباشد."
+            "در این سناریو Threadها به ترتیب سفارش‌های ۱ تا ۶ start می‌شوند، اما زمان آماده‌سازی هر سفارش متفاوت است. "
+            "به همین دلیل سفارش‌هایی که زمان کمتری دارند زودتر تمام می‌شوند. "
+            "خروجی نهایی، ترتیب شروع سفارش‌ها و ترتیب پایان آن‌ها را جداگانه نشان می‌دهد تا مشخص شود در اجرای همزمان، ترتیب پایان الزاماً با ترتیب شروع برابر نیست."
     }
 
 
@@ -106,37 +129,56 @@ def scenario_3():
 
     def prepare_order(order_number):
         output.append(
-            f"Single barista started preparing Order #{order_number}"
+            f"Thread for Order #{order_number} started"
         )
 
         time.sleep(0.2)
 
         output.append(
-            f"Single barista finished Order #{order_number}"
+            f"Thread for Order #{order_number} finished"
         )
 
-    for i in range(1, 11):
+    for i in range(1, 7):
+        output.append(
+            f"MainThread is creating thread for Order #{i}"
+        )
+
         thread = threading.Thread(
             target=prepare_order,
-            args=(i,)
+            args=(i,),
+            name=f"Sequential-Order-Thread-{i}"
         )
 
         thread.start()
+
+        output.append(
+            f"MainThread is waiting for Order #{i} thread using join"
+        )
+
         thread.join()
+
+        output.append(
+            f"MainThread continued after Order #{i} thread finished"
+        )
+
+    output.append("All orders were processed sequentially because join was called immediately")
 
     return {
         "method": "thread",
         "section": 1,
         "scenario": 3,
-        "title": "Single-Barista Coffee Shop with Sequential Orders",
+        "title": "Thread Creation with Immediate Join and Sequential Execution",
         "problem":
             "شرح مسئله:\n"
-            "در این حالت کافی‌شاپ فقط یک باریستا دارد. با اینکه برای هر سفارش یک Thread ساخته می‌شود، باریستا باید سفارش فعلی را کامل آماده کند و بعد سراغ سفارش بعدی برود.\n\n"
+            "در این حالت برای هر سفارش یک Thread ساخته می‌شود، اما برنامه بلافاصله بعد از start کردن هر Thread، "
+            "با join منتظر پایان همان Thread می‌ماند و سپس Thread بعدی را می‌سازد.\n\n"
             "سؤال:\n"
-            "چگونه می‌توان اجرای Threadها را طوری کنترل کرد که هر سفارش پس از پایان سفارش قبلی شروع شود؟\n\n"
+            "آیا صرفاً ساختن Thread باعث اجرای همزمان می‌شود، یا محل استفاده از join هم روی همزمانی اثر دارد؟\n\n"
             "مفهوم مورد بررسی:\n"
-            "استفاده از join برای اجرای ترتیبی Threadها",
+            "تأثیر join روی رفتار اجرایی Threadها",
         "output": output,
         "explanation":
-            "در این سناریو کافی‌شاپ فقط یک باریستا دارد. برای هر سفارش همچنان یک Thread ساخته می‌شود، اما بعد از start بلافاصله join اجرا می‌شود. بنابراین سفارش بعدی تا پایان سفارش قبلی شروع نمی‌شود و خروجی به صورت ترتیبی تولید می‌شود."
+            "در این سناریو برای هر سفارش واقعاً یک Thread ساخته می‌شود، اما چون بلافاصله بعد از start همان Thread، join اجرا می‌شود، "
+            "MainThread تا پایان آن سفارش منتظر می‌ماند. بنابراین Thread بعدی فقط بعد از پایان Thread قبلی ساخته و اجرا می‌شود. "
+            "این سناریو نشان می‌دهد ساخت Thread به‌تنهایی کافی نیست؛ نحوه استفاده از start و join تعیین می‌کند اجرای برنامه واقعاً همزمان باشد یا ترتیبی."
     }
