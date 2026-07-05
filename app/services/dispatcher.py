@@ -96,6 +96,12 @@ from app.services.process.queue_exchange import (
     scenario_3 as queue_exchange_scenario_3,
 )
 
+from app.services.process.process_sync import (
+    scenario_1 as process_sync_scenario_1,
+    scenario_2 as process_sync_scenario_2,
+    scenario_3 as process_sync_scenario_3,
+)
+
 
 
 THREAD_SECTIONS = {
@@ -195,6 +201,12 @@ PROCESS_SECTIONS = {
         1: queue_exchange_scenario_1,
         2: queue_exchange_scenario_2,
         3: queue_exchange_scenario_3,
+    },
+
+    7: {
+        1: process_sync_scenario_1,
+        2: process_sync_scenario_2,
+        3: process_sync_scenario_3,
     },
 }
 
