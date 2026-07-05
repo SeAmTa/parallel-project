@@ -1,8 +1,8 @@
-﻿# Parallel Processing Final Project
+﻿# پروژه نهایی Parallel Processing
 
-A FastAPI-based educational web application for demonstrating **Thread-Based Parallelism** and **Process-Based Parallelism** in Python.
+یک web application آموزشی مبتنی بر FastAPI برای نمایش و آموزش **Thread-Based Parallelism** و **Process-Based Parallelism** در Python.
 
-This project was developed as a final project for the Parallel Processing course. It provides a web interface and API endpoints for running multiple parallel programming scenarios. Each scenario returns a problem description, execution output, and an explanation of why the output is produced.
+این پروژه به‌عنوان final project درس Parallel Processing توسعه داده شده است. برنامه یک web interface و چند API endpoint ارائه می‌دهد تا چندین سناریوی parallel programming اجرا شوند. هر سناریو شامل problem description، execution output و توضیح آموزشی درباره دلیل تولید خروجی است.
 
 ## GitHub Repository
 
@@ -20,36 +20,36 @@ https://github.com/SeAmTa/parallel-project.git
 
 ## Project Overview
 
-The application demonstrates two major categories of parallel execution in Python:
+این application دو دسته اصلی از parallel execution در Python را نمایش می‌دهد:
 
 1. **Thread-Based Parallelism**
 2. **Process-Based Parallelism**
 
-The user can select:
+کاربر می‌تواند موارد زیر را انتخاب کند:
 
-- Parallelism method: `thread` or `process`
+- Parallelism method: `thread` یا `process`
 - Section number
 - Scenario number
 
-After execution, the web page displays:
+بعد از اجرا، web page موارد زیر را نمایش می‌دهد:
 
 - Scenario title
 - Problem statement
 - Runtime output
 - Educational explanation
 
-The project also exposes REST API endpoints for direct testing.
+این پروژه همچنین REST API endpoints را برای تست مستقیم ارائه می‌دهد.
 
 ## Main Features
 
 - FastAPI backend
-- Web UI for scenario selection
-- Thread-based examples using Python `threading`
-- Process-based examples using Python `multiprocessing`
-- Server-Sent Events for streaming scenario output to the browser
+- Web UI برای انتخاب scenario
+- مثال‌های Thread-based با استفاده از Python `threading`
+- مثال‌های Process-based با استفاده از Python `multiprocessing`
+- Server-Sent Events برای streaming خروجی scenario در browser
 - Dockerized application
 - Nginx reverse proxy configuration
-- Ready for deployment on a Linux VPS
+- آماده برای deployment روی Linux VPS
 
 ## Technologies Used
 
@@ -67,7 +67,7 @@ The project also exposes REST API endpoints for direct testing.
 
 ## Project Structure
 
-The project is organized as follows:
+ساختار پروژه به شکل زیر سازمان‌دهی شده است:
 
 ```text
 parallel-project/
@@ -125,18 +125,18 @@ parallel-project/
 
 ## Application Architecture
 
-The application uses a layered structure:
+این application از یک layered structure استفاده می‌کند:
 
-- `app/main.py` creates the FastAPI application, mounts static files, includes routers, and serves the main HTML page.
-- `app/routes/thread.py` exposes API endpoints for thread-based scenarios.
-- `app/routes/process.py` exposes API endpoints for process-based scenarios.
-- `app/routes/stream.py` provides Server-Sent Events for streaming scenario outputs to the frontend.
-- `app/services/dispatcher.py` maps section and scenario numbers to the correct scenario functions.
-- `app/services/thread/` contains all thread-based examples.
-- `app/services/process/` contains all process-based examples.
-- `app/templates/index.html` contains the web interface.
-- `static/style.css` contains the UI styling.
-- `Dockerfile`, `docker-compose.yml`, and `nginx.conf` are used for containerized execution and reverse proxy configuration.
+- `app/main.py` برنامه FastAPI را ایجاد می‌کند، static files را mount می‌کند، routers را include می‌کند و main HTML page را سرو می‌کند.
+- `app/routes/thread.py` API endpoints مربوط به thread-based scenarios را ارائه می‌دهد.
+- `app/routes/process.py` API endpoints مربوط به process-based scenarios را ارائه می‌دهد.
+- `app/routes/stream.py` قابلیت Server-Sent Events را برای streaming خروجی scenarioها به frontend فراهم می‌کند.
+- `app/services/dispatcher.py` شماره section و scenario را به scenario function درست map می‌کند.
+- `app/services/thread/` شامل همه مثال‌های thread-based است.
+- `app/services/process/` شامل همه مثال‌های process-based است.
+- `app/templates/index.html` شامل web interface است.
+- `static/style.css` شامل UI styling است.
+- `Dockerfile`، `docker-compose.yml` و `nginx.conf` برای containerized execution و reverse proxy configuration استفاده می‌شوند.
 
 ## API Endpoints
 
@@ -177,11 +177,11 @@ Examples:
 /stream/process/8/3
 ```
 
-The streaming endpoint is used by the web interface to display the scenario output step by step.
+این streaming endpoint توسط web interface استفاده می‌شود تا خروجی scenario به‌صورت مرحله‌به‌مرحله نمایش داده شود.
 
 ## Output Format
 
-Each scenario returns a structured response similar to this:
+هر scenario یک structured response مشابه نمونه زیر برمی‌گرداند:
 
 ```json
 {
@@ -200,224 +200,224 @@ Each scenario returns a structured response similar to this:
 
 ## Thread-Based Parallelism Sections
 
-The thread-based part contains 10 sections. Each section has 3 scenarios. The scenarios are designed to be technically different, not only different in story.
+بخش thread-based شامل 10 section است. هر section دارای 3 scenario است. سناریوها طوری طراحی شده‌اند که از نظر فنی متفاوت باشند، نه اینکه فقط داستان آن‌ها فرق کند.
 
 | Section | Topic | Scenario 1 | Scenario 2 | Scenario 3 |
 |---:|---|---|---|---|
-| 1 | Defining a Thread | Multiple independent coffee order threads | Different completion order with different delays | Immediate join causing sequential behavior |
-| 2 | Determining the Current Thread | Logging current thread name | Role-based behavior by thread name | Detecting main/worker thread context |
-| 3 | Defining a Thread Subclass | Basic Thread subclass | Subclass with persistent state | Multi-step workflow inside subclass |
-| 4 | Lock Synchronization | Race condition without Lock | Correct shared update with Lock | Protected ATM-style central logging |
-| 5 | RLock Synchronization | Nested lock acquisition | Multi-level workflow with nested calls | Recursive scanner using RLock |
-| 6 | Semaphore Synchronization | Parking lot capacity limit | Download server capacity limit | Producer/consumer signaling |
-| 7 | Barrier Synchronization | Common start point | Coordinator selection by barrier return value | Multi-phase synchronization |
-| 8 | Event Synchronization | One-to-many start signal | Graceful shutdown signal | Timeout and fallback behavior |
-| 9 | Condition Synchronization | Single waiter notification | Multiple waiters with predicate | Custom bounded buffer |
-| 10 | Queue Communication | FIFO producer/consumer | PriorityQueue processing | task_done and join with multiple workers |
+| 1 | Defining a Thread | چند thread مستقل برای سفارش‌های coffee | ترتیب پایان متفاوت با delayهای مختلف | استفاده فوری از join که رفتار را sequential می‌کند |
+| 2 | Determining the Current Thread | ثبت نام current thread در log | رفتار متفاوت بر اساس thread name | تشخیص main/worker thread context |
+| 3 | Defining a Thread Subclass | Thread subclass پایه | Subclass با persistent state | Multi-step workflow داخل subclass |
+| 4 | Lock Synchronization | Race condition بدون Lock | اصلاح shared update با Lock | Central logging شبیه ATM با محافظت |
+| 5 | RLock Synchronization | Nested lock acquisition | Multi-level workflow با nested calls | Recursive scanner با RLock |
+| 6 | Semaphore Synchronization | محدودیت ظرفیت parking lot | محدودیت ظرفیت download server | Producer/consumer signaling |
+| 7 | Barrier Synchronization | نقطه شروع مشترک | انتخاب coordinator با barrier return value | Multi-phase synchronization |
+| 8 | Event Synchronization | One-to-many start signal | Graceful shutdown signal | Timeout و fallback behavior |
+| 9 | Condition Synchronization | Single waiter notification | Multiple waiters با predicate | Custom bounded buffer |
+| 10 | Queue Communication | FIFO producer/consumer | PriorityQueue processing | task_done و join با multiple workers |
 
 ### Thread Section Details
 
 #### 1. Defining a Thread
 
-This section demonstrates the basic creation and execution of Python threads using `threading.Thread`.
+این section ایجاد و اجرای basic threadها در Python را با استفاده از `threading.Thread` نمایش می‌دهد.
 
-- Scenario 1 creates one independent thread for each coffee order.
-- Scenario 2 shows that threads may finish in a different order from the order in which they were started.
-- Scenario 3 shows that using `join()` immediately after each `start()` can make the execution effectively sequential.
+- Scenario 1 برای هر coffee order یک independent thread ایجاد می‌کند.
+- Scenario 2 نشان می‌دهد که threadها ممکن است با ترتیبی متفاوت از ترتیب start شدنشان تمام شوند.
+- Scenario 3 نشان می‌دهد که استفاده از `join()` بلافاصله بعد از هر `start()` می‌تواند execution را عملاً sequential کند.
 
 #### 2. Determining the Current Thread
 
-This section demonstrates how to identify the currently running thread.
+این section نشان می‌دهد که چطور می‌توان thread در حال اجرا را شناسایی کرد.
 
-- Scenario 1 logs the name of the current thread.
-- Scenario 2 changes behavior based on the thread name.
-- Scenario 3 shows the difference between the main application context and worker thread context.
+- Scenario 1 نام current thread را log می‌کند.
+- Scenario 2 رفتار را بر اساس thread name تغییر می‌دهد.
+- Scenario 3 تفاوت بین main application context و worker thread context را نشان می‌دهد.
 
 #### 3. Defining a Thread Subclass
 
-This section demonstrates object-oriented thread design by subclassing `threading.Thread`.
+این section طراحی object-oriented thread را از طریق subclass کردن `threading.Thread` نمایش می‌دهد.
 
-- Scenario 1 overrides the `run()` method.
-- Scenario 2 stores state inside the thread object and reads it after `join()`.
-- Scenario 3 implements a multi-step workflow using helper methods inside the subclass.
+- Scenario 1 متد `run()` را override می‌کند.
+- Scenario 2 state را داخل thread object ذخیره می‌کند و بعد از `join()` آن را می‌خواند.
+- Scenario 3 یک multi-step workflow را با helper methods داخل subclass پیاده‌سازی می‌کند.
 
 #### 4. Thread Synchronization with Lock
 
-This section demonstrates how `Lock` prevents unsafe access to shared data.
+این section نشان می‌دهد که `Lock` چطور از دسترسی ناامن به shared data جلوگیری می‌کند.
 
-- Scenario 1 intentionally shows a race condition.
-- Scenario 2 fixes the shared update problem using `Lock`.
-- Scenario 3 protects multiple shared resources such as log numbering and log storage.
+- Scenario 1 عمداً یک race condition را نمایش می‌دهد.
+- Scenario 2 مشکل shared update را با استفاده از `Lock` اصلاح می‌کند.
+- Scenario 3 از چند shared resource مثل log numbering و log storage محافظت می‌کند.
 
 #### 5. Thread Synchronization with RLock
 
-This section demonstrates re-entrant locking.
+این section مفهوم re-entrant locking را نمایش می‌دهد.
 
-- Scenario 1 uses nested functions that acquire the same lock.
-- Scenario 2 applies RLock in a multi-level workflow.
-- Scenario 3 uses RLock in a recursive function.
+- Scenario 1 از nested functions استفاده می‌کند که همان lock را acquire می‌کنند.
+- Scenario 2 از RLock در یک multi-level workflow استفاده می‌کند.
+- Scenario 3 از RLock داخل یک recursive function استفاده می‌کند.
 
 #### 6. Thread Synchronization with Semaphore
 
-This section demonstrates limiting concurrent access to a resource.
+این section محدود کردن concurrent access به یک resource را نمایش می‌دهد.
 
-- Scenario 1 limits parking access to two cars.
-- Scenario 2 limits concurrent downloads.
-- Scenario 3 uses a semaphore as a signaling mechanism.
+- Scenario 1 دسترسی به parking را به دو car محدود می‌کند.
+- Scenario 2 تعداد downloadهای هم‌زمان را محدود می‌کند.
+- Scenario 3 از semaphore به‌عنوان signaling mechanism استفاده می‌کند.
 
 #### 7. Thread Synchronization with Barrier
 
-This section demonstrates waiting until a group of threads reaches the same point.
+این section نشان می‌دهد چطور یک گروه از threadها تا رسیدن همه به یک نقطه مشترک منتظر می‌مانند.
 
-- Scenario 1 starts all workers after all of them are ready.
-- Scenario 2 uses the barrier return value to select one coordinator.
-- Scenario 3 synchronizes workers across multiple phases.
+- Scenario 1 همه workerها را بعد از آماده شدن همه آن‌ها start می‌کند.
+- Scenario 2 از barrier return value برای انتخاب یک coordinator استفاده می‌کند.
+- Scenario 3 workerها را در چند phase همگام‌سازی می‌کند.
 
 #### 8. Thread Synchronization with Event
 
-This section demonstrates event-based signaling.
+این section event-based signaling را نمایش می‌دهد.
 
-- Scenario 1 uses one event to start multiple workers.
-- Scenario 2 uses an event for graceful shutdown.
-- Scenario 3 uses timeout behavior and fallback logic.
+- Scenario 1 از یک event برای start کردن چند worker استفاده می‌کند.
+- Scenario 2 از یک event برای graceful shutdown استفاده می‌کند.
+- Scenario 3 timeout behavior و fallback logic را نمایش می‌دهد.
 
 #### 9. Thread Synchronization with Condition
 
-This section demonstrates condition variables.
+این section condition variables را نمایش می‌دهد.
 
-- Scenario 1 uses `wait()` and `notify()`.
-- Scenario 2 uses `wait_for()` and `notify_all()`.
-- Scenario 3 implements a bounded buffer with full and empty conditions.
+- Scenario 1 از `wait()` و `notify()` استفاده می‌کند.
+- Scenario 2 از `wait_for()` و `notify_all()` استفاده می‌کند.
+- Scenario 3 یک bounded buffer با full و empty conditions پیاده‌سازی می‌کند.
 
 #### 10. Thread Communication with Queue
 
-This section demonstrates safe communication between threads.
+این section ارتباط امن بین threadها را نمایش می‌دهد.
 
-- Scenario 1 uses a FIFO queue.
-- Scenario 2 uses a priority queue.
-- Scenario 3 uses `task_done()` and `join()` to track task completion.
+- Scenario 1 از FIFO queue استفاده می‌کند.
+- Scenario 2 از priority queue استفاده می‌کند.
+- Scenario 3 از `task_done()` و `join()` برای track کردن تکمیل taskها استفاده می‌کند.
 
 ## Process-Based Parallelism Sections
 
-The process-based part contains 8 sections. Each section has 3 scenarios based on Python `multiprocessing`.
+بخش process-based شامل 8 section است. هر section دارای 3 scenario بر اساس Python `multiprocessing` است.
 
 | Section | Topic | Scenario 1 | Scenario 2 | Scenario 3 |
 |---:|---|---|---|---|
-| 1 | Spawning a Process | One child process and join | Multiple independent processes | Memory isolation between parent and child |
-| 2 | Naming a Process | Default and custom process names | Role-based behavior by process name | Monitoring exit codes by process name |
-| 3 | Background Process | Daemon background logger | Non-daemon finite process | Daemon process cannot create child |
-| 4 | Killing a Process | join(timeout) then terminate | Graceful stop with Event | Selective termination of stuck process |
-| 5 | Process Subclass | Basic Process subclass | State isolation in subclass | Workflow subclass with custom exit code |
-| 6 | Queue Exchange | One-way parent-to-child Queue | Multiple producers and one consumer | Bidirectional request/response queues |
-| 7 | Process Synchronization | Value and Lock | Semaphore capacity limit | Event-based process start |
-| 8 | Process Pool | Pool.map ordered results | apply_async with success/error handling | imap_unordered completion order |
+| 1 | Spawning a Process | یک child process و join | چند independent process | Memory isolation بین parent و child |
+| 2 | Naming a Process | Default و custom process names | رفتار متفاوت بر اساس process name | Monitoring exit codes با process name |
+| 3 | Background Process | Daemon background logger | Non-daemon finite process | Daemon process نمی‌تواند child ایجاد کند |
+| 4 | Killing a Process | join(timeout) سپس terminate | Graceful stop با Event | Selective termination برای stuck process |
+| 5 | Process Subclass | Process subclass پایه | State isolation در subclass | Workflow subclass با custom exit code |
+| 6 | Queue Exchange | One-way parent-to-child Queue | Multiple producers و یک consumer | Bidirectional request/response queues |
+| 7 | Process Synchronization | Value و Lock | Semaphore capacity limit | Event-based process start |
+| 8 | Process Pool | Pool.map ordered results | apply_async با success/error handling | imap_unordered completion order |
 
 ### Process Section Details
 
 #### 1. Spawning a Process
 
-This section demonstrates basic process creation.
+این section basic process creation را نمایش می‌دهد.
 
-- Scenario 1 creates one child process and waits for it using `join()`.
-- Scenario 2 runs multiple independent processes.
-- Scenario 3 shows that parent and child processes do not share normal memory.
+- Scenario 1 یک child process ایجاد می‌کند و با `join()` منتظر آن می‌ماند.
+- Scenario 2 چند independent process را اجرا می‌کند.
+- Scenario 3 نشان می‌دهد که parent و child processes حافظه معمولی را به‌صورت shared ندارند.
 
 #### 2. Naming a Process
 
-This section demonstrates process names and process identity.
+این section process names و process identity را نمایش می‌دهد.
 
-- Scenario 1 compares default and custom process names.
-- Scenario 2 changes behavior based on the process name.
-- Scenario 3 monitors exit codes for named processes.
+- Scenario 1 default process names و custom process names را مقایسه می‌کند.
+- Scenario 2 رفتار را بر اساس process name تغییر می‌دهد.
+- Scenario 3 exit codes را برای named processes بررسی می‌کند.
 
 #### 3. Background Process
 
-This section demonstrates daemon and non-daemon processes.
+این section daemon و non-daemon processes را نمایش می‌دهد.
 
-- Scenario 1 runs a daemon logger in the background.
-- Scenario 2 runs a normal non-daemon process and waits for completion.
-- Scenario 3 shows that a daemon process cannot create a child process.
+- Scenario 1 یک daemon logger را در background اجرا می‌کند.
+- Scenario 2 یک normal non-daemon process را اجرا می‌کند و منتظر completion می‌ماند.
+- Scenario 3 نشان می‌دهد که یک daemon process نمی‌تواند child process ایجاد کند.
 
 #### 4. Killing a Process
 
-This section demonstrates process termination strategies.
+این section strategies مربوط به process termination را نمایش می‌دهد.
 
-- Scenario 1 waits with timeout and then terminates a long-running process.
-- Scenario 2 uses an Event for graceful process shutdown.
-- Scenario 3 terminates only the stuck process among several processes.
+- Scenario 1 با timeout منتظر می‌ماند و سپس long-running process را terminate می‌کند.
+- Scenario 2 از یک Event برای graceful process shutdown استفاده می‌کند.
+- Scenario 3 فقط stuck process را از بین چند process terminate می‌کند.
 
 #### 5. Process Subclass
 
-This section demonstrates subclassing `multiprocessing.Process`.
+این section subclass کردن `multiprocessing.Process` را نمایش می‌دهد.
 
-- Scenario 1 overrides the `run()` method.
-- Scenario 2 shows that child-side state changes do not update the parent object.
-- Scenario 3 uses helper methods and a custom exit code.
+- Scenario 1 متد `run()` را override می‌کند.
+- Scenario 2 نشان می‌دهد که تغییرات state در child-side باعث update شدن parent object نمی‌شود.
+- Scenario 3 از helper methods و یک custom exit code استفاده می‌کند.
 
 #### 6. Queue Exchange Between Processes
 
-This section demonstrates inter-process communication using queues.
+این section inter-process communication را با استفاده از queues نمایش می‌دهد.
 
-- Scenario 1 sends tasks from parent to child using a queue and a sentinel value.
-- Scenario 2 uses multiple producer processes and one consumer process.
-- Scenario 3 uses request and response queues for two-way communication.
+- Scenario 1 taskها را از parent به child با queue و sentinel value ارسال می‌کند.
+- Scenario 2 از multiple producer processes و یک consumer process استفاده می‌کند.
+- Scenario 3 از request و response queues برای two-way communication استفاده می‌کند.
 
 #### 7. Process Synchronization
 
-This section demonstrates synchronization between processes.
+این section synchronization بین processها را نمایش می‌دهد.
 
-- Scenario 1 uses `multiprocessing.Value` with `Lock`.
-- Scenario 2 uses `Semaphore` to limit concurrent process access.
-- Scenario 3 uses `Event` to release child processes after the parent signals start.
+- Scenario 1 از `multiprocessing.Value` همراه با `Lock` استفاده می‌کند.
+- Scenario 2 از `Semaphore` برای محدود کردن concurrent process access استفاده می‌کند.
+- Scenario 3 از `Event` استفاده می‌کند تا child processes بعد از start signal از طرف parent آزاد شوند.
 
 #### 8. Process Pool
 
-This section demonstrates high-level worker pools.
+این section high-level worker pools را نمایش می‌دهد.
 
-- Scenario 1 uses `Pool.map()` and shows ordered results.
-- Scenario 2 uses `Pool.apply_async()` and handles success/error cases.
-- Scenario 3 uses `Pool.imap_unordered()` and shows completion-order results.
+- Scenario 1 از `Pool.map()` استفاده می‌کند و ordered results را نشان می‌دهد.
+- Scenario 2 از `Pool.apply_async()` استفاده می‌کند و success/error cases را مدیریت می‌کند.
+- Scenario 3 از `Pool.imap_unordered()` استفاده می‌کند و completion-order results را نشان می‌دهد.
 
 ## Running the Project Locally Without Docker
 
-First, clone the repository:
+ابتدا repository را clone کنید:
 
 ```bash
 git clone https://github.com/SeAmTa/parallel-project.git
 cd parallel-project
 ```
 
-Create a virtual environment:
+یک virtual environment ایجاد کنید:
 
 ```bash
 python -m venv .venv
 ```
 
-Activate the virtual environment on Windows PowerShell:
+فعال‌سازی virtual environment در Windows PowerShell:
 
 ```powershell
 .venv\Scripts\Activate.ps1
 ```
 
-Install dependencies:
+dependencies را نصب کنید:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Run the FastAPI application:
+FastAPI application را اجرا کنید:
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-Open the application in the browser:
+application را در browser باز کنید:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-Example API endpoints:
+نمونه API endpoints:
 
 ```text
 http://127.0.0.1:8000/api/thread/1/1
@@ -426,30 +426,30 @@ http://127.0.0.1:8000/api/process/8/3
 
 ## Running the Project with Docker and Nginx
 
-The project is fully Dockerized. It uses two containers:
+این پروژه به‌صورت کامل Dockerized شده است. پروژه از دو container استفاده می‌کند:
 
 1. FastAPI application container
 2. Nginx reverse proxy container
 
-Build and run the project:
+برای build و run کردن پروژه:
 
 ```bash
 docker compose up --build
 ```
 
-After the containers start successfully, open:
+بعد از اینکه containerها با موفقیت start شدند، آدرس زیر را باز کنید:
 
 ```text
 http://127.0.0.1
 ```
 
-To stop the running containers, press:
+برای stop کردن containerهای در حال اجرا، کلیدهای زیر را فشار دهید:
 
 ```text
 CTRL + C
 ```
 
-Then remove the containers and network:
+سپس containers و network را remove کنید:
 
 ```bash
 docker compose down
@@ -459,9 +459,9 @@ docker compose down
 
 ### Dockerfile
 
-The `Dockerfile` uses `python:3.11-slim` as the base image. It copies the project files, installs dependencies from `requirements.txt`, exposes port `8000`, and starts the FastAPI app with Uvicorn.
+فایل `Dockerfile` از `python:3.11-slim` به‌عنوان base image استفاده می‌کند. این فایل project files را copy می‌کند، dependencies را از `requirements.txt` نصب می‌کند، port `8000` را expose می‌کند و FastAPI app را با Uvicorn اجرا می‌کند.
 
-Main command inside the container:
+Main command داخل container:
 
 ```bash
 uvicorn app.main:app --host 0.0.0.0 --port 8000
@@ -469,28 +469,28 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 ### docker-compose.yml
 
-The Docker Compose configuration defines two services:
+Docker Compose configuration دو service تعریف می‌کند:
 
-- `app`: builds and runs the FastAPI application.
-- `nginx`: runs an Nginx container and forwards port `80` to the application.
+- `app`: FastAPI application را build و run می‌کند.
+- `nginx`: یک Nginx container اجرا می‌کند و port `80` را به application forward می‌کند.
 
-The FastAPI service is exposed internally on port `8000`, and Nginx receives external HTTP traffic on port `80`.
+FastAPI service به‌صورت internal روی port `8000` expose شده است و Nginx ترافیک HTTP خارجی را روی port `80` دریافت می‌کند.
 
 ### nginx.conf
 
-Nginx is configured as a reverse proxy:
+Nginx به‌عنوان reverse proxy پیکربندی شده است:
 
 ```text
 Client Browser -> Nginx Container -> FastAPI Container
 ```
 
-The Nginx configuration forwards requests to:
+Nginx configuration درخواست‌ها را به آدرس زیر forward می‌کند:
 
 ```text
 http://app:8000
 ```
 
-The following options are included for streaming support:
+گزینه‌های زیر برای streaming support اضافه شده‌اند:
 
 ```nginx
 proxy_buffering off;
@@ -499,15 +499,15 @@ proxy_read_timeout 3600;
 proxy_send_timeout 3600;
 ```
 
-These settings are important because the frontend uses Server-Sent Events to receive scenario output step by step.
+این settings مهم هستند، چون frontend از Server-Sent Events برای دریافت مرحله‌به‌مرحله خروجی scenario استفاده می‌کند.
 
 ## Testing
 
-The project was tested in three levels:
+پروژه در سه سطح تست شده است:
 
 ### 1. Thread API Testing
 
-All thread-based scenarios were tested:
+همه thread-based scenarios تست شدند:
 
 ```text
 10 sections × 3 scenarios = 30 scenarios
@@ -521,7 +521,7 @@ Result:
 
 ### 2. Process API Testing
 
-All process-based scenarios were tested:
+همه process-based scenarios تست شدند:
 
 ```text
 8 sections × 3 scenarios = 24 scenarios
@@ -535,7 +535,7 @@ Result:
 
 ### 3. Docker and Web UI Testing
 
-The project was successfully built and executed using Docker Compose.
+پروژه با موفقیت با Docker Compose ساخته و اجرا شد.
 
 Tested Docker command:
 
@@ -543,7 +543,7 @@ Tested Docker command:
 docker compose up --build
 ```
 
-The following containers were created and started:
+containerهای زیر ایجاد و start شدند:
 
 ```text
 parallel_fastapi_app
@@ -562,20 +562,20 @@ Successful Nginx log:
 Configuration complete; ready for start up
 ```
 
-The web interface was tested at:
+web interface در آدرس زیر تست شد:
 
 ```text
 http://127.0.0.1
 ```
 
-The following scenarios were tested successfully from the UI:
+scenarioهای زیر با موفقیت از UI تست شدند:
 
 ```text
 Thread-Based Parallelism -> Section 10 -> Scenario 1
 Process-Based Parallelism -> Section 8 -> Scenario 3
 ```
 
-The following API endpoints were also tested successfully:
+API endpoints زیر نیز با موفقیت تست شدند:
 
 ```text
 http://127.0.0.1/api/thread/1/1
@@ -584,4 +584,4 @@ http://127.0.0.1/api/process/8/3
 
 ## Notes About Encoding
 
-When testing JSON responses in Windows PowerShell, Persian text may appear incorrectly encoded. This is a PowerShell display issue and not an application error. The Persian text is displayed correctly in the browser and web interface.
+هنگام تست JSON responses در Windows PowerShell، متن فارسی ممکن است با encoding نادرست نمایش داده شود. این موضوع مربوط به نحوه نمایش در PowerShell است و application error محسوب نمی‌شود. متن فارسی در browser و web interface به‌درستی نمایش داده می‌شود.
