@@ -12,7 +12,7 @@ def scenario_1():
             f"{file_name} started by {current_thread.name}"
         )
 
-        time.sleep(0.5)
+        time.sleep(0.4)
 
         output.append(
             f"{file_name} completed by {current_thread.name}"
@@ -21,17 +21,17 @@ def scenario_1():
     threads = [
         threading.Thread(
             target=download_file,
-            name="Download-Thread-1",
+            name="Download-Thread-Image",
             args=("image.png",)
         ),
         threading.Thread(
             target=download_file,
-            name="Download-Thread-2",
+            name="Download-Thread-Video",
             args=("video.mp4",)
         ),
         threading.Thread(
             target=download_file,
-            name="Download-Thread-3",
+            name="Download-Thread-Document",
             args=("document.pdf",)
         ),
     ]
@@ -41,6 +41,8 @@ def scenario_1():
 
     for thread in threads:
         thread.join()
+
+    output.append("All download threads completed")
 
     return {
         "method": "thread",
@@ -49,95 +51,96 @@ def scenario_1():
         "title": "Download Manager with Current Thread Detection",
         "problem":
             "شرح مسئله:\n"
-            "یک برنامه مدیریت دانلود باید چند فایل را به صورت همزمان دریافت کند. برای بررسی لاگ‌ها لازم است مشخص شود هر فایل توسط کدام Thread پردازش شده است.\n\n"
+            "یک برنامه مدیریت دانلود باید چند فایل را به صورت همزمان دریافت کند. "
+            "برای بررسی لاگ‌ها لازم است مشخص شود هر فایل توسط کدام Thread پردازش شده است.\n\n"
             "سؤال:\n"
             "چگونه می‌توان داخل یک تابع فهمید همان لحظه کدام Thread در حال اجرای آن تابع است؟\n\n"
             "مفهوم مورد بررسی:\n"
-            "استفاده از threading.current_thread",
+            "استفاده از threading.current_thread برای تشخیص Thread اجراکننده",
         "output": output,
         "explanation":
-            "در این سناریو چند فایل به صورت همزمان دانلود می‌شوند. داخل تابع download_file با threading.current_thread مشخص می‌کنیم همان لحظه کدام Thread در حال اجرای تابع است."
+            "در این سناریو یک تابع مشترک به نام download_file توسط چند Thread مختلف اجرا می‌شود. "
+            "داخل تابع با threading.current_thread مشخص می‌کنیم همان لحظه کدام Thread در حال اجرای آن تابع است. "
+            "به همین دلیل در خروجی می‌توان دید هر فایل توسط چه Threadی شروع و کامل شده است."
     }
 
 
 def scenario_2():
     output = []
 
-    def background_download(file_name):
+    def handle_support_ticket(ticket_id, customer_type):
         current_thread = threading.current_thread()
 
         output.append(
-            f"{current_thread.name} started downloading {file_name}"
+            f"{current_thread.name} picked ticket {ticket_id} for a {customer_type} customer"
         )
 
-        time.sleep(1)
+        time.sleep(0.3)
 
-        output.append(
-            f"{current_thread.name} finished downloading {file_name}"
-        )
+        if "Senior" in current_thread.name:
+            output.append(
+                f"{current_thread.name} resolved high-priority ticket {ticket_id}"
+            )
+        else:
+            output.append(
+                f"{current_thread.name} resolved normal ticket {ticket_id}"
+            )
 
     threads = [
         threading.Thread(
-            target=background_download,
-            name="Monitor-Download-Image",
-            args=("image.png",)
+            target=handle_support_ticket,
+            name="Senior-Support-Agent-Thread",
+            args=("TCK-1001", "premium")
         ),
         threading.Thread(
-            target=background_download,
-            name="Monitor-Download-Video",
-            args=("video.mp4",)
+            target=handle_support_ticket,
+            name="Support-Agent-Thread-1",
+            args=("TCK-1002", "regular")
         ),
         threading.Thread(
-            target=background_download,
-            name="Monitor-Download-Document",
-            args=("document.pdf",)
+            target=handle_support_ticket,
+            name="Support-Agent-Thread-2",
+            args=("TCK-1003", "regular")
         ),
     ]
 
     for thread in threads:
         thread.start()
 
-    time.sleep(0.2)
-
-    output.append("Active threads detected by monitoring dashboard:")
-
-    active_threads = threading.enumerate()
-
-    for active_thread in active_threads:
-        output.append(
-            f"- {active_thread.name}"
-        )
-
     for thread in threads:
         thread.join()
 
-    output.append("Monitoring dashboard finished checking active threads")
+    output.append("Support ticket processing finished")
 
     return {
         "method": "thread",
         "section": 2,
         "scenario": 2,
-        "title": "Thread Monitoring Dashboard with enumerate",
+        "title": "Support Center Routing Based on Current Thread Name",
         "problem":
             "شرح مسئله:\n"
-            "در یک سیستم مانیتورینگ، چند عملیات دانلود در پس‌زمینه در حال اجرا هستند. مدیر سیستم می‌خواهد در زمان اجرا بداند چه Threadهایی فعال هستند.\n\n"
+            "در یک مرکز پشتیبانی، چند Thread نقش اپراتورهای پشتیبانی را دارند. "
+            "یک اپراتور ارشد و چند اپراتور معمولی به صورت همزمان تیکت‌ها را بررسی می‌کنند. "
+            "تابع پردازش تیکت برای همه آن‌ها مشترک است، اما باید بداند توسط کدام Thread اجرا شده است.\n\n"
             "سؤال:\n"
-            "چگونه می‌توان لیست Threadهای فعال برنامه را در همان لحظه مشاهده کرد؟\n\n"
+            "آیا می‌توان داخل یک تابع مشترک، بر اساس نام Thread فعلی رفتار متفاوتی انجام داد؟\n\n"
             "مفهوم مورد بررسی:\n"
-            "استفاده از threading.enumerate و نام‌گذاری Threadها",
+            "استفاده از current_thread برای شناسایی Thread و تصمیم‌گیری بر اساس نام آن",
         "output": output,
         "explanation":
-            "در این سناریو چند Thread در حال دانلود فایل هستند و همزمان با threading.enumerate لیست Threadهای فعال گرفته می‌شود. این سناریو نشان می‌دهد چطور می‌توان برای مانیتورینگ یا دیباگ، Threadهای فعال برنامه را مشاهده کرد."
+            "در این سناریو همه Threadها یک تابع مشترک را اجرا می‌کنند، اما داخل تابع با threading.current_thread نام Thread فعلی خوانده می‌شود. "
+            "اگر نام Thread شامل Senior باشد، خروجی نشان می‌دهد تیکت با اولویت بالاتر توسط اپراتور ارشد رسیدگی شده است. "
+            "این سناریو نشان می‌دهد current_thread فقط برای لاگ گرفتن نیست و می‌تواند برای تشخیص هویت Thread اجراکننده هم استفاده شود."
     }
 
 
 def scenario_3():
     output = []
 
-    main_thread = threading.current_thread()
+    controller_thread = threading.current_thread()
 
     output.append(
-        f"Program started in {main_thread.name}"
+        f"Request handler is running in {controller_thread.name}"
     )
 
     def worker_task(task_name):
@@ -147,7 +150,7 @@ def scenario_3():
             f"{task_name} started in {current_thread.name}"
         )
 
-        time.sleep(0.4)
+        time.sleep(0.3)
 
         output.append(
             f"{task_name} completed in {current_thread.name}"
@@ -172,32 +175,42 @@ def scenario_3():
     ]
 
     output.append(
-        "MainThread is responsible for creating and starting worker threads"
+        f"{controller_thread.name} is creating worker threads"
     )
 
     for thread in threads:
+        output.append(
+            f"{controller_thread.name} started {thread.name}"
+        )
         thread.start()
 
     for thread in threads:
         thread.join()
+        output.append(
+            f"{controller_thread.name} detected that {thread.name} has finished"
+        )
 
     output.append(
-        f"All workers finished. Control returned to {main_thread.name}"
+        f"All workers finished. Control returned to {controller_thread.name}"
     )
 
     return {
         "method": "thread",
         "section": 2,
         "scenario": 3,
-        "title": "Main Thread and Worker Thread Detection",
+        "title": "Request Handler Thread and Worker Thread Detection",
         "problem":
             "شرح مسئله:\n"
-            "یک برنامه اصلی چند وظیفه پس‌زمینه مانند پشتیبان‌گیری، ارسال ایمیل و تولید گزارش را اجرا می‌کند. لازم است تفاوت Thread اصلی برنامه و Worker Threadها مشخص شود.\n\n"
+            "در یک برنامه FastAPI، درخواست کاربر ابتدا توسط Thread اجراکننده endpoint پردازش می‌شود. "
+            "سپس همان بخش چند Worker Thread برای انجام وظایف پس‌زمینه مانند پشتیبان‌گیری، ارسال ایمیل و تولید گزارش می‌سازد.\n\n"
             "سؤال:\n"
-            "چگونه می‌توان تشخیص داد کدام بخش از برنامه در MainThread اجرا می‌شود و کدام بخش در Worker Threadها؟\n\n"
+            "چگونه می‌توان تشخیص داد خود endpoint در کدام Thread اجرا شده و هر وظیفه پس‌زمینه توسط کدام Worker Thread انجام شده است؟\n\n"
             "مفهوم مورد بررسی:\n"
-            "تشخیص MainThread و Worker Thread با threading.current_thread",
+            "تشخیص Thread فعلی در محیط FastAPI و Worker Threadها با threading.current_thread",
         "output": output,
         "explanation":
-            "در این سناریو ابتدا Thread اصلی برنامه با threading.current_thread تشخیص داده می‌شود. سپس چند Worker Thread ساخته و اجرا می‌شوند. خروجی نشان می‌دهد MainThread وظیفه ایجاد و مدیریت Workerها را دارد و Workerها وظایف جداگانه را انجام می‌دهند."
+            "در این سناریو ابتدا با threading.current_thread مشخص می‌شود خود endpoint در چه Threadی اجرا شده است. "
+            "در محیط FastAPI، چون endpoint به صورت def معمولی نوشته شده، ممکن است این Thread با نام AnyIO worker thread دیده شود. "
+            "سپس چند Worker Thread ساخته می‌شوند و داخل هر Worker دوباره current_thread فراخوانی می‌شود. "
+            "بنابراین خروجی هم Thread اجراکننده درخواست و هم Worker Threadهای ساخته‌شده را نشان می‌دهد."
     }
