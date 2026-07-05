@@ -102,7 +102,11 @@ from app.services.process.process_sync import (
     scenario_3 as process_sync_scenario_3,
 )
 
-
+from app.services.process.process_pool import (
+    scenario_1 as process_pool_scenario_1,
+    scenario_2 as process_pool_scenario_2,
+    scenario_3 as process_pool_scenario_3,
+)
 
 THREAD_SECTIONS = {
     1: {
@@ -207,6 +211,12 @@ PROCESS_SECTIONS = {
         1: process_sync_scenario_1,
         2: process_sync_scenario_2,
         3: process_sync_scenario_3,
+    },
+
+    8: {
+        1: process_pool_scenario_1,
+        2: process_pool_scenario_2,
+        3: process_pool_scenario_3,
     },
 }
 
