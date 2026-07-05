@@ -52,6 +52,12 @@ from app.services.thread.condition_sync import (
     scenario_3 as condition_sync_scenario_3,
 )
 
+from app.services.thread.queue_sync import (
+    scenario_1 as queue_sync_scenario_1,
+    scenario_2 as queue_sync_scenario_2,
+    scenario_3 as queue_sync_scenario_3,
+)
+
 THREAD_SECTIONS = {
     1: {
         1: defining_thread_scenario_1,
@@ -105,6 +111,12 @@ THREAD_SECTIONS = {
         1: condition_sync_scenario_1,
         2: condition_sync_scenario_2,
         3: condition_sync_scenario_3,
+    },
+    
+    10: {
+        1: queue_sync_scenario_1,
+        2: queue_sync_scenario_2,
+        3: queue_sync_scenario_3,
     },
 }
 
