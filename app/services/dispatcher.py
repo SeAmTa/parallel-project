@@ -58,6 +58,14 @@ from app.services.thread.queue_sync import (
     scenario_3 as queue_sync_scenario_3,
 )
 
+# ========================================================
+
+from app.services.process.spawning_process import (
+    scenario_1 as spawning_process_scenario_1,
+    scenario_2 as spawning_process_scenario_2,
+    scenario_3 as spawning_process_scenario_3,
+)
+
 THREAD_SECTIONS = {
     1: {
         1: defining_thread_scenario_1,
@@ -112,7 +120,7 @@ THREAD_SECTIONS = {
         2: condition_sync_scenario_2,
         3: condition_sync_scenario_3,
     },
-    
+
     10: {
         1: queue_sync_scenario_1,
         2: queue_sync_scenario_2,
@@ -120,6 +128,13 @@ THREAD_SECTIONS = {
     },
 }
 
+PROCESS_SECTIONS = {
+    1: {
+        1: spawning_process_scenario_1,
+        2: spawning_process_scenario_2,
+        3: spawning_process_scenario_3,
+    },
+}
 
 def run_thread_scenario(section: int, scenario: int):
     try:
@@ -128,3 +143,9 @@ def run_thread_scenario(section: int, scenario: int):
         return {
             "error": "Section or Scenario not implemented"
         }
+
+def run_process_scenario(section: int, scenario: int):
+    try:
+        return PROCESS_SECTIONS[section][scenario]()
+    except KeyError:
+        return {"error": "Section or Scenario not implemented"}
