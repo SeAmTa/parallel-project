@@ -78,6 +78,12 @@ from app.services.process.background_process import (
     scenario_3 as background_process_scenario_3,
 )
 
+from app.services.process.killing_process import (
+    scenario_1 as killing_process_scenario_1,
+    scenario_2 as killing_process_scenario_2,
+    scenario_3 as killing_process_scenario_3,
+)
+
 THREAD_SECTIONS = {
     1: {
         1: defining_thread_scenario_1,
@@ -152,11 +158,17 @@ PROCESS_SECTIONS = {
         2: naming_process_scenario_2,
         3: naming_process_scenario_3,
     },
-    
+
     3: {
         1: background_process_scenario_1,
         2: background_process_scenario_2,
         3: background_process_scenario_3,
+    },
+    
+    4: {
+        1: killing_process_scenario_1,
+        2: killing_process_scenario_2,
+        3: killing_process_scenario_3,
     },
 }
 
