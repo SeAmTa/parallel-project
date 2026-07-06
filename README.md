@@ -309,7 +309,7 @@ The process-based part contains 8 sections. Each section has 3 scenarios based o
 | 4 | Killing a Process | join(timeout) then terminate | Graceful stop with Event | Selective termination of stuck process |
 | 5 | Process Subclass | Basic Process subclass | State isolation in subclass | Workflow subclass with custom exit code |
 | 6 | Queue Exchange | One-way parent-to-child Queue | Multiple producers and one consumer | Bidirectional request/response queues |
-| 7 | Process Synchronization | Value and Lock | Semaphore capacity limit | Event-based process start |
+| 7 | Process Synchronization | Value and Lock | Semaphore capacity limit | Barrier synchronization |
 | 8 | Process Pool | Pool.map ordered results | apply_async with success/error handling | imap_unordered completion order |
 
 ### Process Section Details
@@ -368,7 +368,7 @@ This section demonstrates synchronization between processes.
 
 - Scenario 1 uses `multiprocessing.Value` with `Lock`.
 - Scenario 2 uses `Semaphore` to limit concurrent process access.
-- Scenario 3 uses `Event` to release child processes after the parent signals start.
+- Scenario 3 uses `multiprocessing.Barrier` to compare processes that wait at a synchronization point with processes that continue without a barrier.
 
 #### 8. Process Pool
 
@@ -585,3 +585,4 @@ http://127.0.0.1/api/process/8/3
 ## Notes About Encoding
 
 When testing JSON responses in Windows PowerShell, Persian text may appear incorrectly encoded. This is a PowerShell display issue and not an application error. The Persian text is displayed correctly in the browser and web interface.
+

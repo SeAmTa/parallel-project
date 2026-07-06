@@ -2,7 +2,7 @@ import multiprocessing
 import os
 import queue
 import time
-
+from datetime import datetime
 
 def _collect_queue_messages(result_queue, expected_count):
     messages = []
@@ -166,27 +166,64 @@ def _limited_resource_worker(
     )
 
 
-def _event_waiting_worker(worker_name, start_event, result_queue):
+def _barrier_managed_worker(
+    worker_name,
+    arrival_delay,
+    synchronizer,
+    serializer_lock,
+    release_timestamp,
+    result_queue
+):
     current_process = multiprocessing.current_process()
 
     result_queue.put(
         f"{worker_name} started in process name='{current_process.name}', PID={os.getpid()}"
     )
 
+    time.sleep(arrival_delay)
+
     result_queue.put(
-        f"{worker_name} is waiting for parent start_event"
+        f"{worker_name} reached the barrier after {arrival_delay:.2f} seconds and is now waiting"
     )
 
-    start_event.wait()
+    synchronizer.wait()
+
+    with serializer_lock:
+        if release_timestamp.value == 0.0:
+            release_timestamp.value = time.time()
+
+        timestamp = datetime.fromtimestamp(release_timestamp.value).strftime(
+            "%Y-%m-%d %H:%M:%S.%f"
+        )
+
+        result_queue.put(
+            f"process {current_process.name} passed the barrier at {timestamp}"
+        )
 
     result_queue.put(
-        f"{worker_name} received start_event and begins synchronized work"
+        f"{worker_name} continues only after all barrier-managed processes have arrived"
     )
 
-    time.sleep(0.15)
+
+def _process_without_barrier(worker_name, arrival_delay, result_queue):
+    current_process = multiprocessing.current_process()
 
     result_queue.put(
-        f"{worker_name} finished synchronized work after event signal"
+        f"{worker_name} started in process name='{current_process.name}', PID={os.getpid()}"
+    )
+
+    time.sleep(arrival_delay)
+
+    timestamp = datetime.fromtimestamp(time.time()).strftime(
+        "%Y-%m-%d %H:%M:%S.%f"
+    )
+
+    result_queue.put(
+        f"process {current_process.name} has no barrier and continued immediately at {timestamp}"
+    )
+
+    result_queue.put(
+        f"{worker_name} finished without waiting for other processes"
     )
 
 
@@ -399,53 +436,68 @@ def scenario_3():
     output = []
 
     result_queue = multiprocessing.Queue()
-    start_event = multiprocessing.Event()
+    synchronizer = multiprocessing.Barrier(2)
+    serializer_lock = multiprocessing.Lock()
+    release_timestamp = multiprocessing.Value("d", 0.0)
 
     processes = [
         multiprocessing.Process(
-            target=_event_waiting_worker,
-            args=(f"Startup-Worker-{worker_number}", start_event, result_queue),
-            name=f"Startup-Worker-{worker_number}-Process"
-        )
-        for worker_number in range(1, 4)
+            target=_barrier_managed_worker,
+            args=(
+                "Barrier-Worker-1",
+                0.25,
+                synchronizer,
+                serializer_lock,
+                release_timestamp,
+                result_queue,
+            ),
+            name="p1 - test_with_barrier",
+        ),
+        multiprocessing.Process(
+            target=_barrier_managed_worker,
+            args=(
+                "Barrier-Worker-2",
+                0.60,
+                synchronizer,
+                serializer_lock,
+                release_timestamp,
+                result_queue,
+            ),
+            name="p2 - test_with_barrier",
+        ),
+        multiprocessing.Process(
+            target=_process_without_barrier,
+            args=("Free-Worker-1", 0.10, result_queue),
+            name="p3 - test_without_barrier",
+        ),
+        multiprocessing.Process(
+            target=_process_without_barrier,
+            args=("Free-Worker-2", 0.15, result_queue),
+            name="p4 - test_without_barrier",
+        ),
     ]
 
     output.append(
-        f"Parent process PID={os.getpid()} created multiprocessing.Event"
+        f"Parent process PID={os.getpid()} created multiprocessing.Barrier with parties=2"
     )
-
     output.append(
-        "Workers will start and then block until parent sets the event"
+        "Processes p1 and p2 are synchronized by the barrier"
+    )
+    output.append(
+        "Processes p3 and p4 do not use the barrier and can continue independently"
     )
 
     for process in processes:
         process.start()
-
         output.append(
             f"Parent started {process.name} with PID={process.pid}"
         )
-
-    output.extend(
-        _collect_queue_messages(
-            result_queue,
-            expected_count=6
-        )
-    )
-
-    output.append(
-        "Parent finished configuration loading and now sets start_event"
-    )
-
-    start_event.set()
 
     for process in processes:
         process.join()
 
     output.extend(
-        _collect_queue_messages(
-            result_queue,
-            expected_count=6
-        )
+        _collect_queue_messages(result_queue, expected_count=14)
     )
 
     for process in processes:
@@ -454,25 +506,35 @@ def scenario_3():
         )
 
     output.append(
-        "Event-based process synchronization workflow finished"
+        "Barrier-based process synchronization workflow finished"
     )
 
     return {
         "method": "process",
         "section": 7,
         "scenario": 3,
-        "title": "Coordinating Process Start with Event",
-        "problem":
+        "title": "Synchronizing Processes with Barrier",
+        "problem": (
             "شرح مسئله:\n"
-            "چند Process worker زودتر start می‌شوند، اما نباید کار اصلی را شروع کنند تا parent تنظیمات اولیه سیستم را آماده کند. "
-            "بعد از آماده شدن parent، همه workerها باید آزاد شوند و کار را شروع کنند.\n\n"
+            "چهار Process اجرا می‌شوند. دو Process باید در یک نقطه مشترک منتظر بمانند "
+            "تا هر دو به آن نقطه برسند و سپس همزمان ادامه دهند. دو Process دیگر هیچ Barrier ندارند "
+            "و بدون انتظار برای بقیه ادامه می‌دهند.\n\n"
             "سؤال:\n"
-            "چگونه می‌توان با multiprocessing.Event چند Process را منتظر نگه داشت و سپس همزمان آزاد کرد؟\n\n"
+            "چگونه می‌توان با multiprocessing.Barrier بخشی از Processها را در یک نقطه همگام کرد "
+            "و تفاوت آن‌ها را با Processهای بدون Barrier مشاهده کرد؟\n\n"
             "مفهوم مورد بررسی:\n"
-            "استفاده از Event برای one-to-many signaling بین parent process و چند child process",
+            "استفاده از Barrier برای phase synchronization بین Processها"
+        ),
         "output": output,
-        "explanation":
-            "در این سناریو چند Process start می‌شوند اما داخل worker روی start_event.wait متوقف می‌مانند. "
-            "تا وقتی parent متد set را صدا نزده، هیچ worker وارد کار اصلی نمی‌شود. بعد از اینکه parent تنظیمات را آماده می‌کند، start_event.set اجرا می‌شود و همه Processهای منتظر آزاد می‌شوند. "
-            "این سناریو با Lock و Semaphore فرق دارد، چون هدف محافظت از shared value یا محدود کردن ظرفیت نیست؛ هدف ارسال یک سیگنال شروع از parent به چند child process است."
+        "explanation": (
+            "در این سناریو یک multiprocessing.Barrier با مقدار parties=2 ساخته شده است. "
+            "این یعنی دو Process باید به barrier.wait برسند تا هر دو آزاد شوند. "
+            "Processهای p1 و p2 وارد تابع barrier-managed می‌شوند و بعد از رسیدن به Barrier متوقف می‌مانند. "
+            "وقتی هر دو Process به Barrier رسیدند، Barrier آن‌ها را آزاد می‌کند و هر دو وارد مرحله بعدی می‌شوند. "
+            "برای اینکه همزمانی آزاد شدن آن‌ها واضح‌تر باشد، زمان آزاد شدن Barrier به صورت یک مقدار مشترک ذخیره می‌شود "
+            "و هر دو Process همان timestamp آزادسازی را گزارش می‌کنند. "
+            "در مقابل، Processهای p3 و p4 هیچ Barrier ندارند و بعد از delay کوتاه خودشان بلافاصله ادامه می‌دهند. "
+            "بنابراین خروجی نشان می‌دهد که Barrier برای تقسیم برنامه به فازهای همگام‌شده استفاده می‌شود، "
+            "در حالی که Processهای بدون Barrier مستقل از بقیه ادامه پیدا می‌کنند."
+        ),
     }
