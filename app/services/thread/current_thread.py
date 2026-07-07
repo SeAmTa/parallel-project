@@ -136,81 +136,76 @@ def scenario_2():
 
 def scenario_3():
     output = []
+    output_lock = threading.Lock()
 
-    controller_thread = threading.current_thread()
+    def log(message):
+        with output_lock:
+            output.append(message)
 
-    output.append(
-        f"Request handler is running in {controller_thread.name}"
+    def nested_worker(parent_thread_name):
+        current = threading.current_thread()
+
+        log(f"Nested-Worker is running in thread: {current.name}")
+        log(f"Nested-Worker was created by: {parent_thread_name}")
+        log(f"Nested-Worker daemon status: {current.daemon}")
+
+        time.sleep(0.05)
+
+        log(f"Nested-Worker finished in thread: {threading.current_thread().name}")
+
+    def supervisor_worker():
+        current = threading.current_thread()
+        main = threading.main_thread()
+
+        log(f"Supervisor is running in thread: {current.name}")
+        log(f"Python main thread is: {main.name}")
+        log(f"Is Supervisor the Python MainThread? {current is main}")
+
+        child = threading.Thread(
+            target=nested_worker,
+            args=(current.name,),
+            name="Nested-Worker"
+        )
+
+        log(f"{current.name} is creating Nested-Worker")
+
+        child.start()
+        child.join()
+
+        log(f"{current.name} joined Nested-Worker")
+
+    caller_thread = threading.current_thread()
+
+    log(f"Scenario function is currently running in thread: {caller_thread.name}")
+
+    supervisor = threading.Thread(
+        target=supervisor_worker,
+        name="Supervisor-Thread"
     )
 
-    def worker_task(task_name):
-        current_thread = threading.current_thread()
+    log("Starting Supervisor-Thread from scenario function")
 
-        output.append(
-            f"{task_name} started in {current_thread.name}"
-        )
+    supervisor.start()
+    supervisor.join()
 
-        time.sleep(0.3)
-
-        output.append(
-            f"{task_name} completed in {current_thread.name}"
-        )
-
-    threads = [
-        threading.Thread(
-            target=worker_task,
-            name="Worker-Backup-Thread",
-            args=("Database Backup",)
-        ),
-        threading.Thread(
-            target=worker_task,
-            name="Worker-Email-Thread",
-            args=("Email Notification",)
-        ),
-        threading.Thread(
-            target=worker_task,
-            name="Worker-Report-Thread",
-            args=("Report Generation",)
-        ),
-    ]
-
-    output.append(
-        f"{controller_thread.name} is creating worker threads"
-    )
-
-    for thread in threads:
-        output.append(
-            f"{controller_thread.name} started {thread.name}"
-        )
-        thread.start()
-
-    for thread in threads:
-        thread.join()
-        output.append(
-            f"{controller_thread.name} detected that {thread.name} has finished"
-        )
-
-    output.append(
-        f"All workers finished. Control returned to {controller_thread.name}"
-    )
+    log("Supervisor-Thread completed")
 
     return {
         "method": "thread",
         "section": 2,
         "scenario": 3,
-        "title": "Request Handler Thread and Worker Thread Detection",
-        "problem":
-            "شرح مسئله:\n"
-            "در یک برنامه FastAPI، درخواست کاربر ابتدا توسط Thread اجراکننده endpoint پردازش می‌شود. "
-            "سپس همان بخش چند Worker Thread برای انجام وظایف پس‌زمینه مانند پشتیبان‌گیری، ارسال ایمیل و تولید گزارش می‌سازد.\n\n"
-            "سؤال:\n"
-            "چگونه می‌توان تشخیص داد خود endpoint در کدام Thread اجرا شده و هر وظیفه پس‌زمینه توسط کدام Worker Thread انجام شده است؟\n\n"
-            "مفهوم مورد بررسی:\n"
-            "تشخیص Thread فعلی در محیط FastAPI و Worker Threadها با threading.current_thread",
+        "title": "ردیابی current_thread در Threadهای تو در تو",
+        "problem": (
+            "یک برنامه یک Thread ناظر ایجاد می‌کند و آن Thread ناظر نیز یک Thread داخلی "
+            "دیگر می‌سازد. هر بخش از اجرا باید بتواند تشخیص دهد کدام Thread در همان لحظه "
+            "در حال اجرای کد است."
+        ),
         "output": output,
-        "explanation":
-            "در این سناریو ابتدا با threading.current_thread مشخص می‌شود خود endpoint در چه Threadی اجرا شده است. "
-            "در محیط FastAPI، چون endpoint به صورت def معمولی نوشته شده، ممکن است این Thread با نام AnyIO worker thread دیده شود. "
-            "سپس چند Worker Thread ساخته می‌شوند و داخل هر Worker دوباره current_thread فراخوانی می‌شود. "
-            "بنابراین خروجی هم Thread اجراکننده درخواست و هم Worker Threadهای ساخته‌شده را نشان می‌دهد."
+        "explanation": (
+            "در این سناریو از threading.current_thread() در سه سطح مختلف استفاده شده است: "
+            "تابع اصلی سناریو، Thread ناظر، و Thread داخلی. نکته مهم این است که در محیط‌هایی "
+            "مثل FastAPI همیشه نباید فرض کنیم کد داخل MainThread اجرا می‌شود، چون ممکن است "
+            "در یک worker thread اجرا شود. تابع current_thread() همیشه همان Threadی را برمی‌گرداند "
+            "که در همان لحظه خط فعلی کد را اجرا می‌کند."
+        )
     }

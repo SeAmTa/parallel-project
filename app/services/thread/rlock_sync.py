@@ -83,117 +83,124 @@ def scenario_1():
             "اما RLock اجازه می‌دهد همان Thread چند بار یک قفل را به صورت تو در تو دریافت کند."
     }
 
-
 def scenario_2():
     output = []
-    rlock = threading.RLock()
-    loan_request = {
-        "documents_valid": True,
-        "credit_score": 720,
-        "approved": False
+    output_lock = threading.Lock()
+
+    order_lock = threading.RLock()
+
+    inventory = {
+        "laptop": 5
     }
 
-    def approve_loan():
-        current_thread = threading.current_thread()
+    revenue = {
+        "total": 0
+    }
 
-        with rlock:
-            output.append(
-                f"{current_thread.name}: approve_loan acquired RLock at level 4"
+    approved_orders = []
+    rejected_orders = []
+
+    def log(message):
+        with output_lock:
+            output.append(message)
+
+    def check_inventory(order_id, product, quantity):
+        with order_lock:
+            log(f"{order_id}: checking inventory for {quantity} {product}")
+
+            available = inventory.get(product, 0)
+
+            if available >= quantity:
+                log(f"{order_id}: inventory is available")
+                return True
+
+            log(f"{order_id}: inventory is not enough")
+            return False
+
+    def reserve_inventory(order_id, product, quantity):
+        with order_lock:
+            log(f"{order_id}: reserving {quantity} {product}")
+
+            inventory[product] -= quantity
+
+            log(
+                f"{order_id}: inventory after reservation = "
+                f"{inventory[product]}"
             )
 
-            loan_request["approved"] = True
+    def charge_customer(order_id, quantity):
+        with order_lock:
+            amount = quantity * 1000
 
-            output.append(
-                f"{current_thread.name}: loan request approved"
-            )
+            log(f"{order_id}: charging customer ${amount}")
 
-    def calculate_score():
-        current_thread = threading.current_thread()
+            revenue["total"] += amount
 
-        with rlock:
-            output.append(
-                f"{current_thread.name}: calculate_score acquired RLock at level 3"
-            )
+            log(f"{order_id}: total revenue = ${revenue['total']}")
 
-            time.sleep(0.15)
+    def approve_order(order_id, product, quantity):
+        with order_lock:
+            log(f"{order_id}: order approval workflow started")
 
-            if loan_request["credit_score"] >= 650:
-                output.append(
-                    f"{current_thread.name}: credit score {loan_request['credit_score']} is acceptable"
-                )
+            if not check_inventory(order_id, product, quantity):
+                rejected_orders.append(order_id)
+                log(f"{order_id}: order rejected")
+                return
 
-                approve_loan()
-            else:
-                output.append(
-                    f"{current_thread.name}: credit score is too low"
-                )
+            reserve_inventory(order_id, product, quantity)
+            charge_customer(order_id, quantity)
 
-    def validate_documents():
-        current_thread = threading.current_thread()
+            approved_orders.append(order_id)
 
-        with rlock:
-            output.append(
-                f"{current_thread.name}: validate_documents acquired RLock at level 2"
-            )
+            log(f"{order_id}: order approved")
 
-            time.sleep(0.15)
+    orders = [
+        ("Order-1", "laptop", 2),
+        ("Order-2", "laptop", 2),
+        ("Order-3", "laptop", 2),
+    ]
 
-            if loan_request["documents_valid"]:
-                output.append(
-                    f"{current_thread.name}: documents are valid"
-                )
+    threads = [
+        threading.Thread(
+            target=approve_order,
+            args=(order_id, product, quantity),
+            name=order_id
+        )
+        for order_id, product, quantity in orders
+    ]
 
-                calculate_score()
-            else:
-                output.append(
-                    f"{current_thread.name}: documents are invalid"
-                )
+    for thread in threads:
+        thread.start()
 
-    def process_loan():
-        current_thread = threading.current_thread()
+    for thread in threads:
+        thread.join()
 
-        with rlock:
-            output.append(
-                f"{current_thread.name}: process_loan acquired RLock at level 1"
-            )
-
-            validate_documents()
-
-            output.append(
-                f"{current_thread.name}: workflow finished with approved={loan_request['approved']}"
-            )
-
-    thread = threading.Thread(
-        target=process_loan,
-        name="Loan-Workflow-Thread"
-    )
-
-    thread.start()
-    thread.join()
-
-    output.append(f"Final loan request state: {loan_request}")
+    output.append(f"Approved orders: {approved_orders}")
+    output.append(f"Rejected orders: {rejected_orders}")
+    output.append(f"Final inventory: {inventory}")
+    output.append(f"Final revenue: ${revenue['total']}")
 
     return {
         "method": "thread",
         "section": 5,
         "scenario": 2,
-        "title": "Loan Approval Workflow with Multi-level RLock",
-        "problem":
-            "شرح مسئله:\n"
-            "در یک سامانه بررسی وام، پردازش درخواست شامل چند مرحله تو در تو است: بررسی مدارک، محاسبه امتیاز اعتباری و تأیید نهایی. "
-            "همه این مراحل به داده مشترک درخواست وام دسترسی دارند و هر مرحله ممکن است همان قفل مشترک را دریافت کند.\n\n"
-            "سؤال:\n"
-            "چگونه می‌توان در یک workflow چندمرحله‌ای که توابع آن یکدیگر را صدا می‌زنند، از یک قفل مشترک بدون ایجاد بن‌بست استفاده کرد؟\n\n"
-            "مفهوم مورد بررسی:\n"
-            "Multi-level Nested Locking با RLock",
+        "title": "استفاده از RLock در یک تراکنش چندمرحله‌ای سفارش",
+        "problem": (
+            "یک فروشگاه آنلاین باید سفارش‌ها را به شکل امن تایید کند. تایید سفارش شامل "
+            "چند مرحله است: بررسی موجودی، رزرو موجودی، و دریافت مبلغ از مشتری. همه این "
+            "مراحل به داده‌های مشترک دسترسی دارند و باید به صورت هماهنگ اجرا شوند."
+        ),
         "output": output,
-        "explanation":
-            "در این سناریو یک workflow چندمرحله‌ای داریم. تابع process_loan قفل را می‌گیرد، سپس validate_documents را صدا می‌زند. "
-            "داخل آن calculate_score و سپس approve_loan اجرا می‌شود. همه این توابع همان RLock را دریافت می‌کنند. "
-            "چون همه فراخوانی‌ها در همان Thread انجام می‌شوند، RLock اجازه می‌دهد قفل در چند سطح مختلف دوباره گرفته شود. "
-            "این رفتار برای workflowهای تو در تو مناسب است."
+        "explanation": (
+            "در این سناریو از RLock برای اجرای یک تراکنش چندمرحله‌ای استفاده شده است. "
+            "تابع approve_order() ابتدا RLock را می‌گیرد و سپس تابع‌های کمکی دیگری را صدا "
+            "می‌زند که آن‌ها هم همان RLock را می‌گیرند. اگر به جای RLock از Lock معمولی "
+            "استفاده شود، همان Thread هنگام گرفتن دوباره قفل ممکن است دچار بن‌بست شود. "
+            "اما RLock اجازه می‌دهد همان Thread چند بار وارد ناحیه محافظت‌شده شود. تفاوت "
+            "این سناریو با مثال ساده nested lock این است که چند Thread همزمان روی موجودی، "
+            "درآمد و وضعیت سفارش‌ها کار می‌کنند."
+        )
     }
-
 
 def scenario_3():
     output = []

@@ -77,98 +77,78 @@ def scenario_1():
             "اگر Semaphore درست عمل کند، مقدار max_cars_inside نباید از ۲ بیشتر شود."
     }
 
-
 def scenario_2():
     output = []
-    download_slots = threading.Semaphore(3)
-    counter_lock = threading.Lock()
+    output_lock = threading.Lock()
 
-    active_downloads = 0
-    max_active_downloads = 0
+    payment_gateway = threading.Semaphore(2)
 
-    download_times = {
-        1: 0.45,
-        2: 0.30,
-        3: 0.55,
-        4: 0.25,
-        5: 0.40,
-        6: 0.35,
-        7: 0.50,
-        8: 0.20,
-        9: 0.30,
-        10: 0.45,
-    }
+    def log(message):
+        with output_lock:
+            output.append(message)
 
-    def download_file(user_number):
-        nonlocal active_downloads
-        nonlocal max_active_downloads
+    def payment_request(customer_name, processing_time):
+        log(f"{customer_name} is trying to access the payment gateway")
 
-        output.append(
-            f"User #{user_number} is waiting for an available download slot"
+        acquired = payment_gateway.acquire(timeout=0.08)
+
+        if not acquired:
+            log(
+                f"{customer_name} could not access the gateway in time "
+                f"and was redirected to the fallback queue"
+            )
+            return
+
+        try:
+            log(f"{customer_name} entered the payment gateway")
+            time.sleep(processing_time)
+            log(f"{customer_name} payment completed successfully")
+        finally:
+            payment_gateway.release()
+            log(f"{customer_name} released the payment gateway slot")
+
+    customers = [
+        ("Customer-1", 0.18),
+        ("Customer-2", 0.18),
+        ("Customer-3", 0.05),
+        ("Customer-4", 0.05),
+        ("Customer-5", 0.05),
+    ]
+
+    threads = [
+        threading.Thread(
+            target=payment_request,
+            args=(customer_name, processing_time),
+            name=customer_name
         )
+        for customer_name, processing_time in customers
+    ]
 
-        with download_slots:
-            with counter_lock:
-                active_downloads += 1
-                max_active_downloads = max(
-                    max_active_downloads,
-                    active_downloads
-                )
-
-                output.append(
-                    f"User #{user_number} started downloading | active_downloads={active_downloads}"
-                )
-
-            time.sleep(download_times[user_number])
-
-            with counter_lock:
-                active_downloads -= 1
-
-                output.append(
-                    f"User #{user_number} finished download after {download_times[user_number]:.2f} seconds | active_downloads={active_downloads}"
-                )
-
-    threads = []
-
-    for i in range(1, 11):
-        thread = threading.Thread(
-            target=download_file,
-            args=(i,),
-            name=f"Download-User-Thread-{i}"
-        )
-
-        threads.append(thread)
+    for thread in threads:
         thread.start()
 
     for thread in threads:
         thread.join()
 
-    output.append(
-        f"Maximum active downloads at the same time: {max_active_downloads}"
-    )
-    output.append("All download requests were processed")
-
     return {
         "method": "thread",
         "section": 6,
         "scenario": 2,
-        "title": "Download Server Resource Pool with Semaphore",
-        "problem":
-            "شرح مسئله:\n"
-            "یک سرور دانلود فقط سه slot همزمان برای دانلود فایل دارد، اما چند کاربر همزمان درخواست دانلود ارسال می‌کنند. "
-            "هر کاربر باید برای شروع دانلود یکی از slotهای محدود سرور را دریافت کند.\n\n"
-            "سؤال:\n"
-            "چگونه می‌توان منابع محدود سرور را بین چند Thread مدیریت کرد تا بیش از ظرفیت مجاز استفاده نشوند؟\n\n"
-            "مفهوم مورد بررسی:\n"
-            "مدیریت Resource Pool با Semaphore",
+        "title": "استفاده از Semaphore همراه با timeout و مسیر جایگزین",
+        "problem": (
+            "یک درگاه پرداخت فقط می‌تواند همزمان به دو مشتری سرویس بدهد. مشتری‌ها نباید "
+            "برای همیشه منتظر بمانند. اگر یک مشتری در مدت زمان مشخص نتواند وارد درگاه شود، "
+            "باید به صف جایگزین منتقل شود."
+        ),
         "output": output,
-        "explanation":
-            "در این سناریو سرور دانلود فقط سه slot همزمان دارد. "
-            "Semaphore با ظرفیت ۳ باعث می‌شود حداکثر سه کاربر همزمان وارد بخش دانلود شوند. "
-            "برای نمایش دقیق این رفتار، تعداد دانلودهای فعال با active_downloads ثبت می‌شود و بیشترین مقدار همزمان با max_active_downloads گزارش می‌شود. "
-            "اگر Semaphore درست عمل کند، مقدار max_active_downloads نباید از ۳ بیشتر شود."
+        "explanation": (
+            "در این سناریو از Semaphore همراه با acquire(timeout=...) استفاده شده است. "
+            "برخلاف یک مثال ساده که همه Threadها تا آزاد شدن ظرفیت منتظر می‌مانند، اینجا "
+            "هر Thread فقط مدت محدودی منتظر می‌ماند. اگر در آن زمان ظرفیت آزاد نشود، Thread "
+            "به جای مسدود ماندن، مسیر جایگزین را اجرا می‌کند. بنابراین این سناریو از نظر "
+            "عملکردی با مثال ساده محدودسازی ظرفیت متفاوت است."
+        )
     }
-
 
 def scenario_3():
     output = []
