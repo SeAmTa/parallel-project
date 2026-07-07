@@ -4,18 +4,19 @@ import queue
 import time
 
 
-def _collect_queue_messages(result_queue, expected_count):
+def _collect_queue_messages(result_queue, expected_count, timeout=1):
     messages = []
 
     for _ in range(expected_count):
         try:
             messages.append(
-                result_queue.get(timeout=2)
+                result_queue.get(timeout=timeout)
             )
         except queue.Empty:
             messages.append(
-                "Warning: expected message was not received from child process"
+                "Warning: expected message was not received from child process before timeout"
             )
+            break
 
     return messages
 
@@ -130,38 +131,56 @@ def scenario_1():
         f"Parent started process name='{process.name}' with PID={process.pid}"
     )
 
-    output.extend(
-        _collect_queue_messages(
-            result_queue,
-            expected_count=4
+    try:
+        output.extend(
+            _collect_queue_messages(
+                result_queue,
+                expected_count=4,
+                timeout=1
+            )
         )
-    )
 
-    output.append(
-        "Parent waits with join(timeout=0.3) instead of waiting forever"
-    )
-
-    process.join(timeout=0.3)
-
-    output.append(
-        f"Process alive after timeout: {process.is_alive()}"
-    )
-
-    if process.is_alive():
         output.append(
-            "Parent terminates the process because it exceeded the allowed time"
+            "Parent waits with join(timeout=0.3) instead of waiting forever"
         )
 
-        process.terminate()
-        process.join()
+        process.join(timeout=0.3)
 
-    output.append(
-        f"Process exit code after terminate: {process.exitcode}"
-    )
+        output.append(
+            f"Process alive after timeout: {process.is_alive()}"
+        )
 
-    output.append(
-        "Timeout-based termination workflow finished"
-    )
+        if process.is_alive():
+            output.append(
+                "Parent terminates the process because it exceeded the allowed time"
+            )
+
+            process.terminate()
+            process.join(timeout=1)
+
+        if process.is_alive():
+            output.append(
+                "Process did not stop after terminate, parent kills it"
+            )
+
+            process.kill()
+            process.join(timeout=1)
+
+        output.append(
+            f"Process exit code after terminate: {process.exitcode}"
+        )
+
+        output.append(
+            "Timeout-based termination workflow finished"
+        )
+
+    finally:
+        if process.is_alive():
+            process.kill()
+            process.join(timeout=1)
+
+        result_queue.close()
+        result_queue.cancel_join_thread()
 
     return {
         "method": "process",
@@ -180,8 +199,8 @@ def scenario_1():
         "explanation":
             "در این سناریو parent یک Process طولانی را start می‌کند. سپس با join(timeout=0.3) فقط مدت محدودی منتظر می‌ماند. "
             "چون Process هنوز زنده است، parent با is_alive آن را تشخیص می‌دهد و با terminate متوقفش می‌کند. "
-            "exitcode صفر نیست، چون Process به شکل طبیعی تمام نشده و توسط parent متوقف شده است. "
-            "این روش برای کارهایی مناسب است که اگر بیش از حد طول کشیدند باید اجباری متوقف شوند."
+            "برای اینکه سناریو داخل Docker و API گیر نکند، join بعد از terminate هم timeout دارد و اگر Process هنوز زنده بماند، kill اجرا می‌شود. "
+            "exitcode صفر نیست، چون Process به شکل طبیعی تمام نشده و توسط parent متوقف شده است."
     }
 
 
@@ -289,51 +308,79 @@ def scenario_3():
         f"Parent process PID={os.getpid()} starts three service processes"
     )
 
-    for process in processes:
-        process.start()
+    try:
+        for process in processes:
+            process.start()
+
+            output.append(
+                f"Parent started {process.name} with PID={process.pid}"
+            )
+
+        time.sleep(0.45)
+
+        output.extend(
+            _collect_queue_messages(
+                result_queue,
+                expected_count=8,
+                timeout=1
+            )
+        )
+
+        billing_process = None
+
+        for process in processes:
+            if process.name == "Billing-Service-Process":
+                billing_process = process
+                break
+
+        if billing_process is not None and billing_process.is_alive():
+            output.append(
+                "Parent detected Billing-Service-Process is still alive and appears stuck"
+            )
+
+            output.append(
+                "Parent terminates only Billing-Service-Process and keeps other processes untouched"
+            )
+
+            billing_process.terminate()
+            billing_process.join(timeout=1)
+
+            if billing_process.is_alive():
+                output.append(
+                    "Billing-Service-Process did not stop after terminate, parent kills it"
+                )
+
+                billing_process.kill()
+                billing_process.join(timeout=1)
+
+        for process in processes:
+            process.join(timeout=1)
+
+            if process.is_alive():
+                output.append(
+                    f"{process.name} is still alive after join timeout, parent kills it for cleanup"
+                )
+
+                process.kill()
+                process.join(timeout=1)
+
+        for process in processes:
+            output.append(
+                f"Final process status: name='{process.name}', PID={process.pid}, exitcode={process.exitcode}"
+            )
 
         output.append(
-            f"Parent started {process.name} with PID={process.pid}"
+            "Selective process termination workflow finished"
         )
 
-    time.sleep(0.45)
+    finally:
+        for process in processes:
+            if process.is_alive():
+                process.kill()
+                process.join(timeout=1)
 
-    output.extend(
-        _collect_queue_messages(
-            result_queue,
-            expected_count=8
-        )
-    )
-
-    billing_process = None
-
-    for process in processes:
-        if process.name == "Billing-Service-Process":
-            billing_process = process
-            break
-
-    if billing_process is not None and billing_process.is_alive():
-        output.append(
-            "Parent detected Billing-Service-Process is still alive and appears stuck"
-        )
-
-        output.append(
-            "Parent terminates only Billing-Service-Process and keeps other processes untouched"
-        )
-
-        billing_process.terminate()
-
-    for process in processes:
-        process.join()
-
-    for process in processes:
-        output.append(
-            f"Final process status: name='{process.name}', PID={process.pid}, exitcode={process.exitcode}"
-        )
-
-    output.append(
-        "Selective process termination workflow finished"
-    )
+        result_queue.close()
+        result_queue.cancel_join_thread()
 
     return {
         "method": "process",
@@ -353,6 +400,5 @@ def scenario_3():
             "در این سناریو سه Process همزمان اجرا می‌شوند. Analytics-Service و Email-Service کار خود را تمام می‌کنند، اما Billing-Service وارد حلقه بی‌پایان می‌شود. "
             "Parent ابتدا لاگ‌های Processها را جمع‌آوری می‌کند، سپس بررسی می‌کند کدام Process هنوز زنده مانده است. "
             "چون Billing-Service-Process هنوز زنده است، parent فقط همان Process را terminate می‌کند و بقیه Processها را دست‌نخورده می‌گذارد. "
-            "در انتها exitcode هر Process گزارش می‌شود. Processهایی که عادی تمام شده‌اند exitcode صفر دارند، اما Process terminate شده exitcode غیرصفر دارد. "
-            "این سناریو با سناریوهای قبلی فرق دارد، چون هدف کشتن همه Processها نیست؛ هدف terminate انتخابی یک Process مشکل‌دار در بین چند Process است."
+            "برای جلوگیری از گیرکردن API در Docker، همه joinها timeout دارند و در صورت زنده ماندن Process، kill برای cleanup نهایی اجرا می‌شود."
     }

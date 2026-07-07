@@ -4,39 +4,43 @@ import queue
 import time
 
 
-def _collect_queue_messages(result_queue, expected_count):
+def _collect_queue_messages(result_queue, expected_count, timeout=1):
     messages = []
 
     for _ in range(expected_count):
         try:
             messages.append(
-                result_queue.get(timeout=2)
+                result_queue.get(timeout=timeout)
             )
         except queue.Empty:
             messages.append(
-                "Warning: expected message was not received from child process"
+                "Warning: expected message was not received from child process before timeout"
             )
+            break
 
     return messages
 
 
-def _background_logger_worker(result_queue):
+def _background_logger_worker(result_queue, heartbeat_count):
     current_process = multiprocessing.current_process()
 
     result_queue.put(
         f"Background logger started in process name='{current_process.name}', PID={os.getpid()}, daemon={current_process.daemon}"
     )
 
-    heartbeat_number = 1
-
-    while True:
+    for heartbeat_number in range(1, heartbeat_count + 1):
         time.sleep(0.15)
 
         result_queue.put(
             f"Background logger heartbeat {heartbeat_number}"
         )
 
-        heartbeat_number += 1
+    result_queue.put(
+        "Background logger finished controlled heartbeat demo and entered idle background mode"
+    )
+
+    while True:
+        time.sleep(1)
 
 
 def _foreground_report_worker(result_queue):
@@ -117,7 +121,7 @@ def scenario_1():
 
     background_process = multiprocessing.Process(
         target=_background_logger_worker,
-        args=(result_queue,),
+        args=(result_queue, 3),
         name="Daemon-Background-Logger"
     )
 
@@ -138,14 +142,15 @@ def scenario_1():
     )
 
     output.append(
-        "Parent continues immediately and does not wait for the endless background loop to finish"
+        "Parent continues immediately and does not wait for the endless background process to finish"
     )
 
     try:
         output.extend(
             _collect_queue_messages(
                 result_queue,
-                expected_count=4
+                expected_count=5,
+                timeout=1
             )
         )
 
@@ -160,7 +165,18 @@ def scenario_1():
             )
 
             background_process.terminate()
-            background_process.join()
+            background_process.join(timeout=1)
+
+        if background_process.is_alive():
+            output.append(
+                "Daemon process did not stop after terminate, parent kills it"
+            )
+
+            background_process.kill()
+            background_process.join(timeout=1)
+
+        result_queue.close()
+        result_queue.cancel_join_thread()
 
     output.append(
         f"Daemon process exit code after cleanup: {background_process.exitcode}"
@@ -173,17 +189,18 @@ def scenario_1():
         "title": "Daemon Background Process with Controlled Cleanup",
         "problem":
             "شرح مسئله:\n"
-            "یک سیستم نیاز دارد یک logger در پس‌زمینه اجرا شود و به صورت مداوم heartbeat تولید کند. "
-            "Process اصلی نباید منتظر پایان طبیعی این کار بماند، چون این worker به صورت طولانی‌مدت اجرا می‌شود.\n\n"
+            "یک سیستم نیاز دارد یک logger در پس‌زمینه اجرا شود و چند heartbeat تولید کند. "
+            "Process اصلی نباید منتظر پایان طبیعی این کار بماند، چون چنین workerهایی معمولاً طولانی‌مدت اجرا می‌شوند.\n\n"
             "سؤال:\n"
-            "چگونه می‌توان یک Process را به صورت daemon/background اجرا کرد تا parent بتواند ادامه دهد؟\n\n"
+            "چگونه می‌توان یک Process را به صورت daemon/background اجرا کرد و در پایان سناریو آن را به شکل کنترل‌شده پاک‌سازی کرد؟\n\n"
             "مفهوم مورد بررسی:\n"
-            "استفاده از daemon=True برای اجرای background process و کنترل cleanup در پایان سناریو",
+            "استفاده از daemon=True برای اجرای background process و انجام cleanup کنترل‌شده در محیط API",
         "output": output,
         "explanation":
-            "در این سناریو Process فرزند با daemon=True ساخته می‌شود. Worker یک حلقه طولانی‌مدت دارد و heartbeat تولید می‌کند. "
-            "Parent بعد از start منتظر پایان طبیعی worker نمی‌ماند و می‌تواند ادامه دهد. چون داخل API نباید Process اضافی زنده باقی بماند، "
-            "در پایان سناریو parent آن را terminate و join می‌کند. نکته مهم این است که daemon flag باید قبل از start تنظیم شود."
+            "در این سناریو Process فرزند با daemon=True ساخته می‌شود. Worker چند heartbeat کنترل‌شده تولید می‌کند و سپس وارد حالت background idle می‌شود. "
+            "Parent بعد از start منتظر پایان طبیعی worker نمی‌ماند و فقط تعداد مشخصی پیام از Queue دریافت می‌کند. "
+            "چون داخل API نباید Process اضافی زنده باقی بماند، parent در پایان سناریو ابتدا terminate و در صورت نیاز kill را اجرا می‌کند. "
+            "این نسخه برای اجرای داخل Docker و FastAPI امن‌تر است، چون هیچ join بدون timeout و هیچ انتظار بی‌نهایت ندارد."
     }
 
 
