@@ -232,9 +232,9 @@ def scenario_3():
             self.shutdown_line()
 
     production_lines = [
-        ProductionLine(1, 2),
-        ProductionLine(2, 3),
-        ProductionLine(3, 2),
+        ProductionLine("A", 2),
+        ProductionLine("B", 3),
+        ProductionLine("C", 2),
     ]
 
     for line in production_lines:
