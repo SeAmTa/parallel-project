@@ -136,6 +136,32 @@ const PROCESS_SECTION_NAMES = {
     "8": "Process Pool"
 };
 
+const LOG_START_KEYWORDS = [
+    "initialization started",
+    "quality check started",
+    "started",
+    "starting",
+    "creating",
+    "waiting",
+    "assigned", 
+    "assembling",
+    "processing"
+];
+
+const LOG_COMPLETE_KEYWORDS = [
+    "initialization completed",
+    "quality check passed",
+    "shutdown completed",
+    "completed",
+    "finished",
+    "assembled",
+    "sorted",
+    "ready",
+    "passed",
+    "failed ",
+    "delivered"
+];
+
 function setStatus(text) {
     document.getElementById("status").innerText = text;
 }
@@ -150,6 +176,57 @@ function getSectionNames(method) {
     }
 
     return {};
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+function escapeRegExp(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function highlightKeywordGroup(message, keywords, className) {
+    const sortedKeywords = [...keywords].sort((a, b) => b.length - a.length);
+    const pattern = sortedKeywords.map(escapeRegExp).join("|");
+
+    if (!pattern) {
+        return message;
+    }
+
+    const regex = new RegExp(`\\b(${pattern})\\b`, "gi");
+
+    return message.replace(regex, function(match) {
+        return `<span class="${className}">${match}</span>`;
+    });
+}
+
+function highlightLogKeywords(message) {
+    let safeMessage = escapeHtml(message);
+
+    safeMessage = highlightKeywordGroup(
+        safeMessage,
+        LOG_START_KEYWORDS,
+        "log-keyword-start"
+    );
+
+    safeMessage = highlightKeywordGroup(
+        safeMessage,
+        LOG_COMPLETE_KEYWORDS,
+        "log-keyword-complete"
+    );
+
+    return safeMessage;
+}
+
+function appendOutputLine(outputElement, htmlLine) {
+    outputElement.insertAdjacentHTML("beforeend", `${htmlLine}\n`);
+    outputElement.scrollTop = outputElement.scrollHeight;
 }
 
 function syncMethodSelector(value) {
@@ -255,8 +332,12 @@ function runScenario() {
             logCountElement.innerText = logCount;
 
             const time = new Date().toLocaleTimeString();
-            outputElement.innerText += `[${time}] ${data.message}\n`;
-            outputElement.scrollTop = outputElement.scrollHeight;
+            const highlightedMessage = highlightLogKeywords(data.message);
+
+            appendOutputLine(
+                outputElement,
+                `<span class="log-time">[${escapeHtml(time)}]</span> ${highlightedMessage}`
+            );
         }
 
         else if (data.type === "explanation") {
@@ -265,7 +346,12 @@ function runScenario() {
 
         else if (data.type === "error") {
             titleElement.innerText = "خطا";
-            outputElement.innerText += data.message + "\n";
+
+            appendOutputLine(
+                outputElement,
+                `<span class="log-keyword-error">${escapeHtml(data.message)}</span>`
+            );
+
             setStatus("Error");
 
             if (eventSource !== null) {
@@ -275,7 +361,13 @@ function runScenario() {
         }
 
         else if (data.type === "done") {
-            outputElement.innerText += "\nExecution finished successfully.";
+            outputElement.insertAdjacentHTML(
+                "beforeend",
+                `\n<span class="log-keyword-complete">Execution finished successfully.</span>`
+            );
+
+            outputElement.scrollTop = outputElement.scrollHeight;
+
             setStatus("Finished");
 
             if (eventSource !== null) {
@@ -301,7 +393,15 @@ function stopScenario() {
         eventSource = null;
 
         setStatus("Stopped");
-        document.getElementById("output").innerText += "\nLog streaming stopped by user.";
+
+        const outputElement = document.getElementById("output");
+
+        outputElement.insertAdjacentHTML(
+            "beforeend",
+            `\n<span class="log-keyword-error">Log streaming stopped by user.</span>`
+        );
+
+        outputElement.scrollTop = outputElement.scrollHeight;
     }
 }
 

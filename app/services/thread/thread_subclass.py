@@ -192,19 +192,32 @@ def scenario_3():
 
         def assemble_product(self, product_number):
             output.append(
-                f"{self.name}: assembling product #{product_number}"
+                f"{self.name}: assembling product #{product_number}/{self.product_count}"
             )
 
             time.sleep(0.2)
 
             self.completed_products += 1
 
+            output.append(
+                f"{self.name}: assembled product #{product_number}/{self.product_count}"
+            )
+     
+
         def quality_check(self):
+            output.append(
+                f"{self.name}: quality check started for {self.completed_products} product(s)"
+            )
+
+            time.sleep(0.1)
+
             output.append(
                 f"{self.name}: quality check passed for {self.completed_products} product(s)"
             )
-
+        
         def shutdown_line(self):
+            time.sleep(0.05)
+
             output.append(
                 f"{self.name}: shutdown completed"
             )
