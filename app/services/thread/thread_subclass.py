@@ -21,7 +21,7 @@ def scenario_1():
                 time.sleep(0.15)
 
                 output.append(
-                    f"{self.name}: sorted baggage #{bag_number}"
+                    f"{self.name}: sorted baggage #{bag_number}/{self.bag_count}"
                 )
 
             output.append(
