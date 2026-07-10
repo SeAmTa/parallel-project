@@ -116,7 +116,7 @@ def scenario_2():
 
     threads = []
 
-    for i in range(1, 11):
+    for i in range(1, 4):
         thread = threading.Thread(
             target=buy_ticket,
             args=(i,),
