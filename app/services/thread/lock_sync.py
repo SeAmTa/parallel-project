@@ -34,7 +34,7 @@ def scenario_1():
 
     threads = []
 
-    for i in range(1, 11):
+    for i in range(1, 5):
         thread = threading.Thread(
             target=buy_ticket,
             args=(i,),
