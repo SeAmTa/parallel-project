@@ -91,6 +91,25 @@ def scenario_2():
             f"Customer #{customer_number} is waiting for reservation lock"
         )
 
+        # lock.acquire()
+        # try:
+        #     output.append(
+        #         f"Customer #{customer_number} entered critical section with tickets_left={tickets_left}"
+        #     )
+        #     if tickets_left > 0:
+        #         time.sleep(0.1)
+        #         tickets_left -= 1
+        #         sold_to.append(customer_number)
+        #         output.append(
+        #             f"Customer #{customer_number} successfully bought the last ticket"
+        #         )
+        #     else:
+        #         output.append(
+        #             f"Customer #{customer_number} failed: no ticket left"
+        #         )
+        # finally:
+        #     lock.release()
+
         with lock:
             output.append(
                 f"Customer #{customer_number} entered critical section with tickets_left={tickets_left}"
@@ -116,7 +135,7 @@ def scenario_2():
 
     threads = []
 
-    for i in range(1, 4):
+    for i in range(1, 5):
         thread = threading.Thread(
             target=buy_ticket,
             args=(i,),
