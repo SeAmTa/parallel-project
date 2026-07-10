@@ -147,7 +147,6 @@ def scenario_3():
 
         log(f"Nested-Worker is running in thread: {current.name}")
         log(f"Nested-Worker was created by: {parent_thread_name}")
-        log(f"Nested-Worker daemon status: {current.daemon}")
 
         time.sleep(0.05)
 
@@ -203,9 +202,14 @@ def scenario_3():
         "output": output,
         "explanation": (
             "در این سناریو از threading.current_thread() در سه سطح مختلف استفاده شده است: "
-            "تابع اصلی سناریو، Thread ناظر، و Thread داخلی. نکته مهم این است که در محیط‌هایی "
-            "مثل FastAPI همیشه نباید فرض کنیم کد داخل MainThread اجرا می‌شود، چون ممکن است "
-            "در یک worker thread اجرا شود. تابع current_thread() همیشه همان Threadی را برمی‌گرداند "
-            "که در همان لحظه خط فعلی کد را اجرا می‌کند."
+            "تابع اصلی سناریو، Thread ناظر، و Thread داخلی. در ابتدای سناریو مشخص می‌شود "
+            "تابع سناریو در کدام Thread در حال اجراست. سپس Supervisor-Thread ساخته می‌شود "
+            "و داخل آن با current_thread() نام Thread ناظر خوانده می‌شود. همچنین با "
+            "threading.main_thread() نشان داده می‌شود که Thread ناظر الزاماً همان MainThread "
+            "پایتون نیست. در مرحله بعد، Supervisor-Thread یک Nested-Worker می‌سازد و نام خودش "
+            "را به عنوان parent_thread_name به آن می‌دهد. Nested-Worker نیز با current_thread() "
+            "تشخیص می‌دهد خودش در کدام Thread اجرا می‌شود و همچنین نشان می‌دهد توسط کدام Thread "
+            "ساخته شده است. نکته اصلی این است که current_thread() همیشه Threadی را برمی‌گرداند "
+            "که همان لحظه خط فعلی کد را اجرا می‌کند، نه الزاماً MainThread."
         )
     }
