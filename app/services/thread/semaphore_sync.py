@@ -26,8 +26,9 @@ def scenario_1():
                 output.append(
                     f"Car #{car_number} entered the parking lot | cars_inside={cars_inside}"
                 )
-
-            time.sleep(0.4)
+            
+            parking_time = 0.25 if car_number % 2 == 1 else 0.7
+            time.sleep(parking_time)
 
             with counter_lock:
                 cars_inside -= 1
