@@ -213,16 +213,24 @@ def scenario_3():
                 "profile": {}
             },
             "documents": {
-                "university": {
-                    "projects": {}
+                "uni": {
+                    "proj": {}
                 }
             }
         }
     }
 
+# root
+#  ├───images
+#  │     ├───profile
+#  │     └───vacation
+#  └───documents
+#         └───uni
+#              └───proj
+
     def scan_folder(folder_name, children, depth=0):
         current_thread = threading.current_thread()
-        indent = "│   " * depth
+        indent = "│  " * depth
 
         with rlock:
             output.append(
