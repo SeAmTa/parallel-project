@@ -331,12 +331,11 @@ function runScenario() {
             logCount += 1;
             logCountElement.innerText = logCount;
 
-            const time = new Date().toLocaleTimeString();
             const highlightedMessage = highlightLogKeywords(data.message);
 
             appendOutputLine(
                 outputElement,
-                `<span class="log-time">[${escapeHtml(time)}]</span> ${highlightedMessage}`
+                highlightedMessage
             );
         }
 

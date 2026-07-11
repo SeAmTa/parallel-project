@@ -222,7 +222,7 @@ def scenario_3():
 
     def scan_folder(folder_name, children, depth=0):
         current_thread = threading.current_thread()
-        indent = "  " * depth
+        indent = "│   " * depth
 
         with rlock:
             output.append(
