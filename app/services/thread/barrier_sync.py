@@ -18,7 +18,7 @@ def scenario_1():
     runners = [
         ("Runner-Ali", 0.20),
         ("Runner-Reza", 0.45),
-        ("Runner-Sara", 0.30),
+        ("Runner-Amir", 0.30),
     ]
 
     def runner_task(runner_name, warmup_time):
