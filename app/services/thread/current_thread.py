@@ -193,7 +193,7 @@ def scenario_3():
         "method": "thread",
         "section": 2,
         "scenario": 3,
-        "title": "ردیابی current_thread در Threadهای تو در تو",
+        "title": "Tracking current_thread in Nested Threads",
         "problem": (
             "یک برنامه یک Thread ناظر ایجاد می‌کند و آن Thread ناظر نیز یک Thread داخلی "
             "دیگر می‌سازد. هر بخش از اجرا باید بتواند تشخیص دهد کدام Thread در همان لحظه "

@@ -184,7 +184,7 @@ def scenario_2():
         "method": "thread",
         "section": 5,
         "scenario": 2,
-        "title": "استفاده از RLock در یک تراکنش چندمرحله‌ای سفارش",
+        "title": "Using RLock in a Multi-Step Order Transaction",
         "problem": (
             "یک فروشگاه آنلاین باید سفارش‌ها را به شکل امن تایید کند. تایید سفارش شامل "
             "چند مرحله است: بررسی موجودی، رزرو موجودی، و دریافت مبلغ از مشتری. همه این "

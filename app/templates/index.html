@@ -74,8 +74,8 @@
             <div class="result-header">
                 <div>
                     <h4 id="sectionTitle">Section not selected</h4>
-                    <h2 id="title">سناریویی اجرا نشده است</h2>
-                    <p id="meta">یک Section و Scenario انتخاب کن و اجرا را بزن.</p>
+                    <h2 id="title">No scenario has been executed yet</h2>
+                    <p id="meta">Select a Section and Scenario, then click Run.</p>
                 </div>
 
                 <div class="log-counter">
@@ -159,7 +159,7 @@ const LOG_COMPLETE_KEYWORDS = [
     "sorted",
     "ready",
     "passed",
-    "failed ",
+    "failed",
     "left",
     "processed", 
     "delivered"
@@ -263,8 +263,8 @@ function updateSections() {
     });
 
     document.getElementById("sectionTitle").innerText = "Section not selected";
-    document.getElementById("title").innerText = "سناریویی اجرا نشده است";
-    document.getElementById("meta").innerText = "یک Section و Scenario انتخاب کن و اجرا را بزن.";
+    document.getElementById("title").innerText = "No scenario has been executed yet";
+    document.getElementById("meta").innerText = "Select a Section and Scenario, then click Run.";
     document.getElementById("problem").innerText = "---";
     document.getElementById("output").innerText = "Waiting for execution...";
     document.getElementById("explanation").innerText = "---";
@@ -308,7 +308,7 @@ function runScenario() {
     logCountElement.innerText = "0";
 
     sectionTitleElement.innerText = sectionName;
-    titleElement.innerText = "در حال اجرا...";
+    titleElement.innerText = "Running...";
     metaElement.innerText = `Method: ${method} | Section: ${section} | Scenario: ${scenario}`;
     problemElement.innerText = "---";
     outputElement.innerText = "";
@@ -347,7 +347,7 @@ function runScenario() {
         }
 
         else if (data.type === "error") {
-            titleElement.innerText = "خطا";
+            titleElement.innerText = "Error";
 
             appendOutputLine(
                 outputElement,

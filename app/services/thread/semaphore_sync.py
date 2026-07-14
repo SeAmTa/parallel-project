@@ -135,7 +135,7 @@ def scenario_2():
         "method": "thread",
         "section": 6,
         "scenario": 2,
-        "title": "استفاده از Semaphore همراه با timeout و مسیر جایگزین",
+        "title": "Using Semaphore with Timeout and Fallback Path",
         "problem": (
             "یک درگاه پرداخت فقط می‌تواند همزمان به دو مشتری سرویس بدهد. مشتری‌ها نباید "
             "برای همیشه منتظر بمانند. اگر یک مشتری در مدت زمان مشخص نتواند وارد درگاه شود، "
