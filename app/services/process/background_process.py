@@ -105,7 +105,6 @@ def scenario_1():
             background_process.join(timeout=1)
 
         result_queue.close()
-        result_queue.cancel_join_thread()
 
     output.append(
         f"Daemon process exit code after cleanup: {background_process.exitcode}"
