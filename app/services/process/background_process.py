@@ -317,6 +317,10 @@ def scenario_3():
             f"Parent joined supervisor name='{supervisor_process.name}' with exit code {supervisor_process.exitcode}"
         )
 
+        output.append(
+            "-----------------------------------------------------------"
+        )
+
     output.append(
         "Daemon child creation restriction demonstration finished"
     )
