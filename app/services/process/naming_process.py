@@ -303,7 +303,7 @@ def scenario_3():
         "output": output,
         "explanation":
             "در این سناریو هر Process یک نام مشخص دارد و parent بعد از join کردن Processها exitcode آن‌ها را بررسی می‌کند. "
-            "دو Process با exitcode برابر ۰ تمام می‌شوند، اما Search-Health-Process با sys.exit(2) خاتمه پیدا می‌کند. "
+            "دو Process با exitcode برابر 0 تمام می‌شوند، اما Search-Health-Process با sys.exit(2) خاتمه پیدا می‌کند. "
             "چون هر Process نام مشخص دارد، parent می‌تواند دقیقاً گزارش دهد کدام Process شکست خورده است. "
             "این سناریو با دو سناریوی قبلی فرق دارد، چون naming اینجا برای monitoring و خطایابی بعد از پایان Processها استفاده می‌شود."
     }
