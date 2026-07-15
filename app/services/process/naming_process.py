@@ -48,7 +48,7 @@ def scenario_1():
     custom_named_process = multiprocessing.Process(
         target=_identity_report_worker,
         args=("custom-name-report", result_queue),
-        name="Custom-Inventory-Audit-Process"
+        name="Custom-Process"
     )
 
     processes = [
