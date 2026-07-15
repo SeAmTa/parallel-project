@@ -35,65 +35,6 @@ def _identity_report_worker(task_name, result_queue):
     )
 
 
-def _role_based_worker(result_queue):
-    current_process = multiprocessing.current_process()
-    process_name = current_process.name
-
-    result_queue.put(
-        f"{process_name} started with PID={os.getpid()}"
-    )
-
-    time.sleep(0.20)
-
-    if "Compressor" in process_name:
-        files = ["image.png", "menu.pdf", "report.csv"]
-
-        result_queue.put(
-            f"{process_name} compressed {len(files)} files"
-        )
-
-    elif "Validator" in process_name:
-        records = ["order-1", "order-2", "order-3", "order-4"]
-
-        result_queue.put(
-            f"{process_name} validated {len(records)} records"
-        )
-
-    elif "Notifier" in process_name:
-        notifications = ["email", "sms"]
-
-        result_queue.put(
-            f"{process_name} sent {len(notifications)} notifications"
-        )
-
-    else:
-        result_queue.put(
-            f"{process_name} has no matching role"
-        )
-
-
-def _named_health_check_worker(result_queue, should_fail):
-    current_process = multiprocessing.current_process()
-    process_name = current_process.name
-
-    result_queue.put(
-        f"{process_name} started health check with PID={os.getpid()}"
-    )
-
-    time.sleep(0.25)
-
-    if should_fail:
-        result_queue.put(
-            f"{process_name} detected a critical error and exits with code 2"
-        )
-
-        sys.exit(2)
-
-    result_queue.put(
-        f"{process_name} completed health check successfully"
-    )
-
-
 def scenario_1():
     output = []
 
@@ -160,6 +101,43 @@ def scenario_1():
             "Process دوم با name سفارشی ساخته شده است. داخل تابع worker، با multiprocessing.current_process نام Process جاری خوانده می‌شود. "
             "این سناریو پایه‌ای‌ترین کاربرد naming را نشان می‌دهد: نام Process برای لاگ‌گیری، شناسایی و خوانایی خروجی‌ها استفاده می‌شود."
     }
+
+
+def _role_based_worker(result_queue):
+    current_process = multiprocessing.current_process()
+    process_name = current_process.name
+
+    result_queue.put(
+        f"{process_name} started with PID={os.getpid()}"
+    )
+
+    time.sleep(0.20)
+
+    if "Compressor" in process_name:
+        files = ["image.png", "menu.pdf", "report.csv"]
+
+        result_queue.put(
+            f"{process_name} compressed {len(files)} files"
+        )
+
+    elif "Validator" in process_name:
+        records = ["order-1", "order-2", "order-3", "order-4"]
+
+        result_queue.put(
+            f"{process_name} validated {len(records)} records"
+        )
+
+    elif "Notifier" in process_name:
+        notifications = ["email", "sms"]
+
+        result_queue.put(
+            f"{process_name} sent {len(notifications)} notifications"
+        )
+
+    else:
+        result_queue.put(
+            f"{process_name} has no matching role"
+        )
 
 
 def scenario_2():
@@ -231,6 +209,28 @@ def scenario_2():
     }
 
 
+def _named_health_check_worker(result_queue, should_fail):
+    current_process = multiprocessing.current_process()
+    process_name = current_process.name
+
+    result_queue.put(
+        f"{process_name} started health check with PID={os.getpid()}"
+    )
+
+    time.sleep(0.25)
+
+    if should_fail:
+        result_queue.put(
+            f"{process_name} detected a critical error and exits with code 2"
+        )
+
+        sys.exit(2)
+
+    result_queue.put(
+        f"{process_name} completed health check successfully"
+    )
+
+    
 def scenario_3():
     output = []
 

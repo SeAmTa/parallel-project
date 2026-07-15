@@ -40,40 +40,6 @@ def _single_invoice_worker(result_queue):
     )
 
 
-def _image_resize_worker(image_name, resize_time, result_queue):
-    process_id = os.getpid()
-
-    result_queue.put(
-        f"{image_name} resize started in process PID={process_id}"
-    )
-
-    time.sleep(resize_time)
-
-    result_queue.put(
-        f"{image_name} resize finished in process PID={process_id}"
-    )
-
-
-def _memory_isolation_worker(shared_number, result_queue):
-    process_id = os.getpid()
-
-    result_queue.put(
-        f"Child process PID={process_id} received shared_number={shared_number}"
-    )
-
-    shared_number += 100
-
-    result_queue.put(
-        f"Child process changed its own copy to shared_number={shared_number}"
-    )
-
-    time.sleep(0.20)
-
-    result_queue.put(
-        "Child process finished, but this change does not affect the parent process memory"
-    )
-
-
 def scenario_1():
     output = []
 
@@ -131,6 +97,20 @@ def scenario_1():
             "بعد از start، سیستم‌عامل یک Process جداگانه با PID مستقل می‌سازد. سپس parent با join منتظر می‌ماند تا child تمام شود. "
             "در پایان exitcode برابر ۰ نشان می‌دهد Process فرزند بدون خطا تمام شده است."
     }
+
+
+def _image_resize_worker(image_name, resize_time, result_queue):
+    process_id = os.getpid()
+
+    result_queue.put(
+        f"{image_name} resize started in process PID={process_id}"
+    )
+
+    time.sleep(resize_time)
+
+    result_queue.put(
+        f"{image_name} resize finished in process PID={process_id}"
+    )
 
 
 def scenario_2():
@@ -204,6 +184,26 @@ def scenario_2():
     }
 
 
+def _memory_isolation_worker(shared_number, result_queue):
+    process_id = os.getpid()
+
+    result_queue.put(
+        f"Child process PID={process_id} received shared_number={shared_number}"
+    )
+
+    shared_number += 100
+
+    result_queue.put(
+        f"Child process changed its own copy to shared_number={shared_number}"
+    )
+
+    time.sleep(0.20)
+
+    result_queue.put(
+        "Child process finished, but this change does not affect the parent process memory"
+    )
+
+    
 def scenario_3():
     output = []
 

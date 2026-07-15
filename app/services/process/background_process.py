@@ -43,77 +43,6 @@ def _background_logger_worker(result_queue, heartbeat_count):
         time.sleep(1)
 
 
-def _foreground_report_worker(result_queue):
-    current_process = multiprocessing.current_process()
-
-    result_queue.put(
-        f"Foreground report process started with name='{current_process.name}', PID={os.getpid()}, daemon={current_process.daemon}"
-    )
-
-    for step in range(1, 4):
-        time.sleep(0.20)
-
-        result_queue.put(
-            f"Foreground report process completed step {step}/3"
-        )
-
-    result_queue.put(
-        "Foreground report process finished all required work"
-    )
-
-
-def _nested_child_worker(local_queue):
-    current_process = multiprocessing.current_process()
-
-    local_queue.put(
-        f"Nested child process executed with name='{current_process.name}', PID={os.getpid()}, daemon={current_process.daemon}"
-    )
-
-
-def _supervisor_worker(result_queue):
-    current_process = multiprocessing.current_process()
-    supervisor_name = current_process.name
-
-    result_queue.put(
-        f"{supervisor_name} started with PID={os.getpid()}, daemon={current_process.daemon}"
-    )
-
-    try:
-        local_queue = multiprocessing.Queue()
-
-        nested_process = multiprocessing.Process(
-            target=_nested_child_worker,
-            args=(local_queue,),
-            name=f"Nested-Child-Of-{supervisor_name}"
-        )
-
-        nested_process.start()
-
-        result_queue.put(
-            f"{supervisor_name} started nested child process with PID={nested_process.pid}"
-        )
-
-        try:
-            nested_message = local_queue.get(timeout=2)
-        except queue.Empty:
-            nested_message = "Warning: nested child message was not received"
-
-        result_queue.put(
-            nested_message
-        )
-
-        nested_process.join()
-
-        result_queue.put(
-            f"{supervisor_name} joined nested child with exit code {nested_process.exitcode}"
-        )
-
-    except Exception as error:
-        result_queue.put(
-            f"{supervisor_name} could not start a nested child process: {type(error).__name__}: {error}"
-        )
-
-
 def scenario_1():
     output = []
 
@@ -204,6 +133,25 @@ def scenario_1():
     }
 
 
+def _foreground_report_worker(result_queue):
+    current_process = multiprocessing.current_process()
+
+    result_queue.put(
+        f"Foreground report process started with name='{current_process.name}', PID={os.getpid()}, daemon={current_process.daemon}"
+    )
+
+    for step in range(1, 4):
+        time.sleep(0.20)
+
+        result_queue.put(
+            f"Foreground report process completed step {step}/3"
+        )
+
+    result_queue.put(
+        "Foreground report process finished all required work"
+    )
+
+
 def scenario_2():
     output = []
 
@@ -271,6 +219,58 @@ def scenario_2():
     }
 
 
+def _nested_child_worker(local_queue):
+    current_process = multiprocessing.current_process()
+
+    local_queue.put(
+        f"Nested child process executed with name='{current_process.name}', PID={os.getpid()}, daemon={current_process.daemon}"
+    )
+
+
+def _supervisor_worker(result_queue):
+    current_process = multiprocessing.current_process()
+    supervisor_name = current_process.name
+
+    result_queue.put(
+        f"{supervisor_name} started with PID={os.getpid()}, daemon={current_process.daemon}"
+    )
+
+    try:
+        local_queue = multiprocessing.Queue()
+
+        nested_process = multiprocessing.Process(
+            target=_nested_child_worker,
+            args=(local_queue,),
+            name=f"Nested-Child-Of-{supervisor_name}"
+        )
+
+        nested_process.start()
+
+        result_queue.put(
+            f"{supervisor_name} started nested child process with PID={nested_process.pid}"
+        )
+
+        try:
+            nested_message = local_queue.get(timeout=2)
+        except queue.Empty:
+            nested_message = "Warning: nested child message was not received"
+
+        result_queue.put(
+            nested_message
+        )
+
+        nested_process.join()
+
+        result_queue.put(
+            f"{supervisor_name} joined nested child with exit code {nested_process.exitcode}"
+        )
+
+    except Exception as error:
+        result_queue.put(
+            f"{supervisor_name} could not start a nested child process: {type(error).__name__}: {error}"
+        )
+
+        
 def scenario_3():
     output = []
 

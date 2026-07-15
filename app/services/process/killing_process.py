@@ -43,73 +43,6 @@ def _long_running_report_worker(result_queue):
         time.sleep(0.25)
 
 
-def _graceful_stop_worker(stop_event, result_queue):
-    current_process = multiprocessing.current_process()
-
-    result_queue.put(
-        f"Graceful worker started with name='{current_process.name}', PID={os.getpid()}"
-    )
-
-    for cycle in range(1, 3):
-        time.sleep(0.15)
-
-        result_queue.put(
-            f"Graceful worker completed work cycle {cycle}/2"
-        )
-
-    result_queue.put(
-        "Graceful worker is now waiting for parent stop event"
-    )
-
-    while not stop_event.is_set():
-        time.sleep(0.05)
-
-    result_queue.put(
-        "Graceful worker observed stop event and starts cleanup"
-    )
-
-    time.sleep(0.10)
-
-    result_queue.put(
-        "Graceful worker cleanup completed and exits normally"
-    )
-
-
-def _quick_service_worker(service_name, result_queue):
-    current_process = multiprocessing.current_process()
-
-    result_queue.put(
-        f"{service_name} started in process name='{current_process.name}', PID={os.getpid()}"
-    )
-
-    time.sleep(0.25)
-
-    result_queue.put(
-        f"{service_name} completed its normal workload"
-    )
-
-    result_queue.put(
-        f"{service_name} finished normally"
-    )
-
-
-def _stuck_service_worker(service_name, result_queue):
-    current_process = multiprocessing.current_process()
-
-    result_queue.put(
-        f"{service_name} started in process name='{current_process.name}', PID={os.getpid()}"
-    )
-
-    time.sleep(0.15)
-
-    result_queue.put(
-        f"{service_name} became unresponsive and entered an endless loop"
-    )
-
-    while True:
-        time.sleep(0.25)
-
-
 def scenario_1():
     output = []
 
@@ -204,6 +137,38 @@ def scenario_1():
     }
 
 
+def _graceful_stop_worker(stop_event, result_queue):
+    current_process = multiprocessing.current_process()
+
+    result_queue.put(
+        f"Graceful worker started with name='{current_process.name}', PID={os.getpid()}"
+    )
+
+    for cycle in range(1, 3):
+        time.sleep(0.15)
+
+        result_queue.put(
+            f"Graceful worker completed work cycle {cycle}/2"
+        )
+
+    result_queue.put(
+        "Graceful worker is now waiting for parent stop event"
+    )
+
+    while not stop_event.is_set():
+        time.sleep(0.05)
+
+    result_queue.put(
+        "Graceful worker observed stop event and starts cleanup"
+    )
+
+    time.sleep(0.10)
+
+    result_queue.put(
+        "Graceful worker cleanup completed and exits normally"
+    )
+
+    
 def scenario_2():
     output = []
 
@@ -279,6 +244,41 @@ def scenario_2():
             "Worker بعد از انجام چند cycle منتظر stop_event می‌ماند. وقتی parent متد set را صدا می‌زند، worker سیگنال را می‌بیند، cleanup انجام می‌دهد و به شکل طبیعی خارج می‌شود. "
             "به همین دلیل exitcode برابر ۰ است. این سناریو با سناریوی اول فرق دارد، چون توقف از نوع cooperative و امن‌تر است."
     }
+
+
+def _quick_service_worker(service_name, result_queue):
+    current_process = multiprocessing.current_process()
+
+    result_queue.put(
+        f"{service_name} started in process name='{current_process.name}', PID={os.getpid()}"
+    )
+
+    time.sleep(0.25)
+
+    result_queue.put(
+        f"{service_name} completed its normal workload"
+    )
+
+    result_queue.put(
+        f"{service_name} finished normally"
+    )
+
+
+def _stuck_service_worker(service_name, result_queue):
+    current_process = multiprocessing.current_process()
+
+    result_queue.put(
+        f"{service_name} started in process name='{current_process.name}', PID={os.getpid()}"
+    )
+
+    time.sleep(0.15)
+
+    result_queue.put(
+        f"{service_name} became unresponsive and entered an endless loop"
+    )
+
+    while True:
+        time.sleep(0.25)
 
 
 def scenario_3():

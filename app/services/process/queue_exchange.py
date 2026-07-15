@@ -51,103 +51,6 @@ def _single_child_consumer_worker(task_queue, result_queue):
     )
 
 
-def _producer_worker(producer_name, item_count, work_queue, result_queue):
-    current_process = multiprocessing.current_process()
-
-    result_queue.put(
-        f"{producer_name} started in process name='{current_process.name}', PID={os.getpid()}"
-    )
-
-    for item_number in range(1, item_count + 1):
-        item = f"{producer_name}-Item-{item_number}"
-
-        time.sleep(0.08)
-
-        work_queue.put(item)
-
-        result_queue.put(
-            f"{producer_name} put {item} into shared process queue"
-        )
-
-    result_queue.put(
-        f"{producer_name} finished producing {item_count} items"
-    )
-
-
-def _shared_consumer_worker(work_queue, result_queue):
-    current_process = multiprocessing.current_process()
-
-    result_queue.put(
-        f"Shared consumer started in process name='{current_process.name}', PID={os.getpid()}"
-    )
-
-    consumed_items = []
-
-    while True:
-        item = work_queue.get()
-
-        if item is None:
-            result_queue.put(
-                "Shared consumer received shutdown sentinel"
-            )
-            break
-
-        time.sleep(0.12)
-
-        consumed_items.append(item)
-
-        result_queue.put(
-            f"Shared consumer processed {item}"
-        )
-
-    result_queue.put(
-        f"Shared consumer processed total items={len(consumed_items)}"
-    )
-
-
-def _request_response_worker(request_queue, response_queue, result_queue):
-    current_process = multiprocessing.current_process()
-
-    result_queue.put(
-        f"Request-response worker started in process name='{current_process.name}', PID={os.getpid()}"
-    )
-
-    while True:
-        request = request_queue.get()
-
-        if request is None:
-            result_queue.put(
-                "Request-response worker received shutdown request"
-            )
-            break
-
-        request_id = request["request_id"]
-        product_name = request["product_name"]
-        quantity = request["quantity"]
-        unit_price = request["unit_price"]
-
-        result_queue.put(
-            f"Request-response worker received request_id={request_id} for product='{product_name}'"
-        )
-
-        time.sleep(0.12)
-
-        total_price = quantity * unit_price
-
-        response_queue.put(
-            {
-                "request_id": request_id,
-                "product_name": product_name,
-                "total_price": total_price,
-                "handled_by": current_process.name
-            }
-        )
-
-    result_queue.put(
-        "Request-response worker exits after all requests"
-    )
-
-
 def scenario_1():
     output = []
 
@@ -227,6 +130,60 @@ def scenario_1():
     }
 
 
+def _producer_worker(producer_name, item_count, work_queue, result_queue):
+    current_process = multiprocessing.current_process()
+
+    result_queue.put(
+        f"{producer_name} started in process name='{current_process.name}', PID={os.getpid()}"
+    )
+
+    for item_number in range(1, item_count + 1):
+        item = f"{producer_name}-Item-{item_number}"
+
+        time.sleep(0.08)
+
+        work_queue.put(item)
+
+        result_queue.put(
+            f"{producer_name} put {item} into shared process queue"
+        )
+
+    result_queue.put(
+        f"{producer_name} finished producing {item_count} items"
+    )
+
+
+def _shared_consumer_worker(work_queue, result_queue):
+    current_process = multiprocessing.current_process()
+
+    result_queue.put(
+        f"Shared consumer started in process name='{current_process.name}', PID={os.getpid()}"
+    )
+
+    consumed_items = []
+
+    while True:
+        item = work_queue.get()
+
+        if item is None:
+            result_queue.put(
+                "Shared consumer received shutdown sentinel"
+            )
+            break
+
+        time.sleep(0.12)
+
+        consumed_items.append(item)
+
+        result_queue.put(
+            f"Shared consumer processed {item}"
+        )
+
+    result_queue.put(
+        f"Shared consumer processed total items={len(consumed_items)}"
+    )
+
+    
 def scenario_2():
     output = []
 
@@ -326,6 +283,49 @@ def scenario_2():
             "parent ابتدا منتظر تمام شدن producerها می‌ماند، سپس sentinel را داخل Queue قرار می‌دهد تا consumer بعد از مصرف همه آیتم‌ها متوقف شود. "
             "این سناریو با سناریوی اول فرق دارد، چون فقط یک parent و یک child نداریم؛ چند Process تولیدکننده همزمان با یک consumer از طریق Queue مشترک ارتباط دارند."
     }
+
+
+def _request_response_worker(request_queue, response_queue, result_queue):
+    current_process = multiprocessing.current_process()
+
+    result_queue.put(
+        f"Request-response worker started in process name='{current_process.name}', PID={os.getpid()}"
+    )
+
+    while True:
+        request = request_queue.get()
+
+        if request is None:
+            result_queue.put(
+                "Request-response worker received shutdown request"
+            )
+            break
+
+        request_id = request["request_id"]
+        product_name = request["product_name"]
+        quantity = request["quantity"]
+        unit_price = request["unit_price"]
+
+        result_queue.put(
+            f"Request-response worker received request_id={request_id} for product='{product_name}'"
+        )
+
+        time.sleep(0.12)
+
+        total_price = quantity * unit_price
+
+        response_queue.put(
+            {
+                "request_id": request_id,
+                "product_name": product_name,
+                "total_price": total_price,
+                "handled_by": current_process.name
+            }
+        )
+
+    result_queue.put(
+        "Request-response worker exits after all requests"
+    )
 
 
 def scenario_3():
