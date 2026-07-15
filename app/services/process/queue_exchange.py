@@ -116,7 +116,7 @@ def scenario_1():
         "title": "One-Way Parent to Child Queue Exchange",
         "problem":
             "شرح مسئله:\n"
-            "Process اصلی چند task دارد و می‌خواهد آن‌ها را به یک Process فرزند ارسال کند. "
+            "فرایند اصلی چند task دارد و می‌خواهد آن‌ها را به یک Process فرزند ارسال کند. "
             "Process فرزند باید taskها را از Queue دریافت کند و به ترتیب FIFO پردازش کند.\n\n"
             "سؤال:\n"
             "چگونه می‌توان با multiprocessing.Queue داده را از parent process به child process منتقل کرد؟\n\n"
@@ -183,7 +183,7 @@ def _shared_consumer_worker(work_queue, result_queue):
         f"Shared consumer processed total items={len(consumed_items)}"
     )
 
-    
+
 def scenario_2():
     output = []
 
