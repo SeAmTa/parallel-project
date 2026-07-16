@@ -300,16 +300,11 @@ def _generate_bot_reply(message_text):
     return "I received your message. A support agent will respond soon."
 
 
-def _telegram_bot_worker(
-    request_queue,
-    response_queue,
-    result_queue
-):
+def _telegram_bot_worker(request_queue, response_queue, result_queue):
     current_process = multiprocessing.current_process()
 
     result_queue.put(
-        f"Telegram bot worker started in process "
-        f"name='{current_process.name}', PID={os.getpid()}"
+        f"Telegram bot worker started in process name='{current_process.name}', PID={os.getpid()}"
     )
 
     while True:
@@ -326,8 +321,7 @@ def _telegram_bot_worker(
         message_text = request["message_text"]
 
         result_queue.put(
-            f"Telegram bot worker received message_id={message_id} "
-            f"from chat_id={chat_id}"
+            f"Telegram bot worker received message_id={message_id} from chat_id={chat_id}"
         )
 
         time.sleep(0.12)
@@ -384,8 +378,7 @@ def scenario_3():
     ]
 
     output.append(
-        f"Parent process PID={os.getpid()} created "
-        "request_queue and response_queue for Telegram bot messages"
+        f"Parent process PID={os.getpid()} created request_queue and response_queue for Telegram bot messages"
     )
 
     process.start()
@@ -405,8 +398,7 @@ def scenario_3():
         request_queue.put(message)
 
         output.append(
-            f"Parent received Telegram message_id="
-            f"{message['message_id']} and sent it to child process"
+            f"Parent received Telegram message_id={message['message_id']} and sent it to child process"
         )
 
         output.extend(
@@ -420,21 +412,16 @@ def scenario_3():
             response = response_queue.get(timeout=2)
 
             output.append(
-                f"Parent received generated reply for "
-                f"message_id={response['message_id']}: "
-                f"reply='{response['reply_text']}', "
-                f"handled_by='{response['handled_by']}'"
+                f"Parent received generated reply for message_id={response['message_id']}: reply='{response['reply_text']}', handled_by='{response['handled_by']}'"
             )
 
             output.append(
-                f"Parent sent reply back to Telegram "
-                f"chat_id={response['chat_id']}"
+                f"Parent sent reply back to Telegram chat_id={response['chat_id']}"
             )
 
         except queue.Empty:
             output.append(
-                f"Warning: parent did not receive a reply for "
-                f"message_id={message['message_id']}"
+                f"Warning: parent did not receive a reply for message_id={message['message_id']}"
             )
 
     request_queue.put(None)
