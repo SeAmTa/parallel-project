@@ -49,115 +49,6 @@ class InvoiceExportProcess(multiprocessing.Process):
         )
 
 
-class WarehouseCounterProcess(multiprocessing.Process):
-    def __init__(self, result_queue, items):
-        super().__init__(
-            name="Warehouse-Counter-Subclass-Process"
-        )
-
-        self.result_queue = result_queue
-        self.items = items
-        self.accepted_count = 0
-        self.rejected_count = 0
-
-    def run(self):
-        current_process = multiprocessing.current_process()
-
-        self.result_queue.put(
-            f"{current_process.name} started with PID={os.getpid()}"
-        )
-
-        self.result_queue.put(
-            f"Child initial state: accepted_count={self.accepted_count}, rejected_count={self.rejected_count}"
-        )
-
-        for item in self.items:
-            time.sleep(0.10)
-
-            if item.startswith("damaged"):
-                self.rejected_count += 1
-
-                self.result_queue.put(
-                    f"Child rejected item='{item}'. rejected_count={self.rejected_count}"
-                )
-            else:
-                self.accepted_count += 1
-
-                self.result_queue.put(
-                    f"Child accepted item='{item}'. accepted_count={self.accepted_count}"
-                )
-
-        self.result_queue.put(
-            f"Child final state: accepted_count={self.accepted_count}, rejected_count={self.rejected_count}"
-        )
-
-
-class ReportPipelineProcess(multiprocessing.Process):
-    def __init__(self, result_queue, batch_name, should_fail):
-        super().__init__(
-            name=f"Report-Pipeline-{batch_name}"
-        )
-
-        self.result_queue = result_queue
-        self.batch_name = batch_name
-        self.should_fail = should_fail
-
-    def _extract_data(self):
-        time.sleep(0.10)
-
-        self.result_queue.put(
-            f"{self.name} extracted data for batch='{self.batch_name}'"
-        )
-
-    def _validate_data(self):
-        time.sleep(0.10)
-
-        if self.should_fail:
-            self.result_queue.put(
-                f"{self.name} validation failed for batch='{self.batch_name}'"
-            )
-
-            raise ValueError(
-                f"Invalid records found in batch '{self.batch_name}'"
-            )
-
-        self.result_queue.put(
-            f"{self.name} validation passed for batch='{self.batch_name}'"
-        )
-
-    def _generate_report(self):
-        time.sleep(0.10)
-
-        self.result_queue.put(
-            f"{self.name} generated final report for batch='{self.batch_name}'"
-        )
-
-    def run(self):
-        current_process = multiprocessing.current_process()
-
-        self.result_queue.put(
-            f"{current_process.name} started with PID={os.getpid()}"
-        )
-
-        try:
-            self._extract_data()
-            self._validate_data()
-            self._generate_report()
-
-            self.result_queue.put(
-                f"{self.name} pipeline status=SUCCESS"
-            )
-
-        except ValueError as error:
-            self.result_queue.put(
-                f"{self.name} pipeline status=FAILED because {error}"
-            )
-
-            time.sleep(0.10)
-
-            raise SystemExit(3)
-
-
 def scenario_1():
     output = []
 
@@ -214,6 +105,49 @@ def scenario_1():
             "وقتی parent متد start را صدا می‌زند، Python یک Process جدید می‌سازد و متد run داخل child process اجرا می‌شود. "
             "این روش زمانی مفید است که بخواهیم منطق اجرای Process را به صورت شیءگرا و قابل توسعه داخل یک کلاس نگه داریم."
     }
+
+
+class WarehouseCounterProcess(multiprocessing.Process):
+    def __init__(self, result_queue, items):
+        super().__init__(
+            name="Warehouse-Counter-Subclass-Process"
+        )
+
+        self.result_queue = result_queue
+        self.items = items
+        self.accepted_count = 0
+        self.rejected_count = 0
+
+    def run(self):
+        current_process = multiprocessing.current_process()
+
+        self.result_queue.put(
+            f"{current_process.name} started with PID={os.getpid()}"
+        )
+
+        self.result_queue.put(
+            f"Child initial state: accepted_count={self.accepted_count}, rejected_count={self.rejected_count}"
+        )
+
+        for item in self.items:
+            time.sleep(0.10)
+
+            if item.startswith("damaged"):
+                self.rejected_count += 1
+
+                self.result_queue.put(
+                    f"Child rejected item='{item}'. rejected_count={self.rejected_count}"
+                )
+            else:
+                self.accepted_count += 1
+
+                self.result_queue.put(
+                    f"Child accepted item='{item}'. accepted_count={self.accepted_count}"
+                )
+
+        self.result_queue.put(
+            f"Child final state: accepted_count={self.accepted_count}, rejected_count={self.rejected_count}"
+        )
 
 
 def scenario_2():
@@ -286,6 +220,72 @@ def scenario_2():
     }
 
 
+class ReportPipelineProcess(multiprocessing.Process):
+    def __init__(self, result_queue, batch_name, should_fail):
+        super().__init__(
+            name=f"Report-Pipeline-{batch_name}"
+        )
+
+        self.result_queue = result_queue
+        self.batch_name = batch_name
+        self.should_fail = should_fail
+
+    def _extract_data(self):
+        time.sleep(0.10)
+
+        self.result_queue.put(
+            f"{self.name} extracted data for batch='{self.batch_name}'"
+        )
+
+    def _validate_data(self):
+        time.sleep(0.10)
+
+        if self.should_fail:
+            self.result_queue.put(
+                f"{self.name} validation failed for batch='{self.batch_name}'"
+            )
+
+            raise ValueError(
+                f"Invalid records found in batch '{self.batch_name}'"
+            )
+
+        self.result_queue.put(
+            f"{self.name} validation passed for batch='{self.batch_name}'"
+        )
+
+    def _generate_report(self):
+        time.sleep(0.10)
+
+        self.result_queue.put(
+            f"{self.name} generated final report for batch='{self.batch_name}'"
+        )
+
+    def run(self):
+        current_process = multiprocessing.current_process()
+
+        self.result_queue.put(
+            f"{current_process.name} started with PID={os.getpid()}"
+        )
+
+        try:
+            self._extract_data()
+            self._validate_data()
+            self._generate_report()
+
+            self.result_queue.put(
+                f"{self.name} pipeline status=SUCCESS"
+            )
+
+        except ValueError as error:
+            self.result_queue.put(
+                f"{self.name} pipeline status=FAILED because {error}"
+            )
+
+            time.sleep(0.10)
+
+            raise SystemExit(3)
+        
+        
 def scenario_3():
     output = []
 
