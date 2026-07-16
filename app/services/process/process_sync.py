@@ -4,21 +4,6 @@ import queue
 import time
 from datetime import datetime
 
-def _collect_queue_messages(result_queue, expected_count):
-    messages = []
-
-    for _ in range(expected_count):
-        try:
-            messages.append(
-                result_queue.get(timeout=2)
-            )
-        except queue.Empty:
-            messages.append(
-                "Warning: expected message was not received from child process"
-            )
-
-    return messages
-
 
 def _put_ordered_message(result_queue, log_sequence, log_lock, message):
     with log_lock:
@@ -99,131 +84,6 @@ def _safe_deposit_worker(
         log_sequence,
         log_lock,
         f"{worker_name} finished all locked deposits"
-    )
-
-
-def _limited_resource_worker(
-        worker_name,
-        resource_semaphore,
-        active_counter,
-        max_active_counter,
-        counter_lock,
-        log_sequence,
-        log_lock,
-        result_queue
-):
-    current_process = multiprocessing.current_process()
-
-    _put_ordered_message(
-        result_queue,
-        log_sequence,
-        log_lock,
-        f"{worker_name} started in process name='{current_process.name}', PID={os.getpid()}"
-    )
-
-    _put_ordered_message(
-        result_queue,
-        log_sequence,
-        log_lock,
-        f"{worker_name} is waiting for a limited license slot"
-    )
-
-    with resource_semaphore:
-        with counter_lock:
-            active_counter.value += 1
-
-            if active_counter.value > max_active_counter.value:
-                max_active_counter.value = active_counter.value
-
-            current_active = active_counter.value
-            current_max = max_active_counter.value
-
-            _put_ordered_message(
-                result_queue,
-                log_sequence,
-                log_lock,
-                f"{worker_name} entered limited resource. active_processes={current_active}, max_active_so_far={current_max}"
-            )
-
-        time.sleep(0.25)
-
-        with counter_lock:
-            active_counter.value -= 1
-            remaining_active = active_counter.value
-
-            _put_ordered_message(
-                result_queue,
-                log_sequence,
-                log_lock,
-                f"{worker_name} left limited resource. active_processes={remaining_active}"
-            )
-
-    _put_ordered_message(
-        result_queue,
-        log_sequence,
-        log_lock,
-        f"{worker_name} finished semaphore-controlled work"
-    )
-
-
-def _barrier_managed_worker(
-    worker_name,
-    arrival_delay,
-    synchronizer,
-    serializer_lock,
-    release_timestamp,
-    result_queue
-):
-    current_process = multiprocessing.current_process()
-
-    result_queue.put(
-        f"{worker_name} started in process name='{current_process.name}', PID={os.getpid()}"
-    )
-
-    time.sleep(arrival_delay)
-
-    result_queue.put(
-        f"{worker_name} reached the barrier after {arrival_delay:.2f} seconds and is now waiting"
-    )
-
-    synchronizer.wait()
-
-    with serializer_lock:
-        if release_timestamp.value == 0.0:
-            release_timestamp.value = time.time()
-
-        timestamp = datetime.fromtimestamp(release_timestamp.value).strftime(
-            "%Y-%m-%d %H:%M:%S.%f"
-        )
-
-        result_queue.put(
-            f"process {current_process.name} passed the barrier at {timestamp}"
-        )
-
-    result_queue.put(
-        f"{worker_name} continues only after all barrier-managed processes have arrived"
-    )
-
-
-def _process_without_barrier(worker_name, arrival_delay, result_queue):
-    current_process = multiprocessing.current_process()
-
-    result_queue.put(
-        f"{worker_name} started in process name='{current_process.name}', PID={os.getpid()}"
-    )
-
-    time.sleep(arrival_delay)
-
-    timestamp = datetime.fromtimestamp(time.time()).strftime(
-        "%Y-%m-%d %H:%M:%S.%f"
-    )
-
-    result_queue.put(
-        f"process {current_process.name} has no barrier and continued immediately at {timestamp}"
-    )
-
-    result_queue.put(
-        f"{worker_name} finished without waiting for other processes"
     )
 
 
@@ -342,6 +202,70 @@ def scenario_1():
     }
 
 
+def _limited_resource_worker(
+        worker_name,
+        resource_semaphore,
+        active_counter,
+        max_active_counter,
+        counter_lock,
+        log_sequence,
+        log_lock,
+        result_queue
+):
+    current_process = multiprocessing.current_process()
+
+    _put_ordered_message(
+        result_queue,
+        log_sequence,
+        log_lock,
+        f"{worker_name} started in process name='{current_process.name}', PID={os.getpid()}"
+    )
+
+    _put_ordered_message(
+        result_queue,
+        log_sequence,
+        log_lock,
+        f"{worker_name} is waiting for a limited license slot"
+    )
+
+    with resource_semaphore:
+        with counter_lock:
+            active_counter.value += 1
+
+            if active_counter.value > max_active_counter.value:
+                max_active_counter.value = active_counter.value
+
+            current_active = active_counter.value
+            current_max = max_active_counter.value
+
+            _put_ordered_message(
+                result_queue,
+                log_sequence,
+                log_lock,
+                f"{worker_name} entered limited resource. active_processes={current_active}, max_active_so_far={current_max}"
+            )
+
+        time.sleep(0.25)
+
+        with counter_lock:
+            active_counter.value -= 1
+            remaining_active = active_counter.value
+
+            _put_ordered_message(
+                result_queue,
+                log_sequence,
+                log_lock,
+                f"{worker_name} left limited resource. active_processes={remaining_active}"
+            )
+
+    _put_ordered_message(
+        result_queue,
+        log_sequence,
+        log_lock,
+        f"{worker_name} finished semaphore-controlled work"
+    )
+
+
 def scenario_2():
     output = []
 
@@ -351,6 +275,7 @@ def scenario_2():
     active_counter = multiprocessing.Value("i", 0)
     max_active_counter = multiprocessing.Value("i", 0)
     counter_lock = multiprocessing.Lock()
+
     log_sequence = multiprocessing.Value("i", 0)
     log_lock = multiprocessing.Lock()
 
@@ -377,7 +302,7 @@ def scenario_2():
     )
 
     output.append(
-        "Five render worker processes will compete for only two license slots"
+        "5 render worker processes will compete for only two license slots"
     )
 
     for process in processes:
@@ -432,11 +357,98 @@ def scenario_2():
     }
 
 
+def _collect_queue_messages(result_queue, expected_count):
+    messages = []
+
+    for _ in range(expected_count):
+        try:
+            messages.append(
+                result_queue.get(timeout=2)
+            )
+        except queue.Empty:
+            messages.append(
+                "Warning: expected message was not received from child process"
+            )
+
+    return messages
+
+
+def _barrier_managed_worker(
+    worker_name,
+    arrival_delay,
+    synchronizer,
+    serializer_lock,
+    release_timestamp,
+    result_queue
+):
+    current_process = multiprocessing.current_process()
+
+    result_queue.put(
+        f"{worker_name} started in process name='{current_process.name}', PID={os.getpid()}"
+    )
+
+    time.sleep(arrival_delay)
+
+    result_queue.put(
+        f"{worker_name} completed its production stage after {arrival_delay:.2f} seconds and reached the vehicle assembly barrier"
+    )
+
+    synchronizer.wait()
+
+    with serializer_lock:
+        if release_timestamp.value == 0.0:
+            release_timestamp.value = time.time()
+
+        timestamp = datetime.fromtimestamp(
+            release_timestamp.value
+        ).strftime(
+            "%Y-%m-%d %H:%M:%S.%f"
+        )
+
+        result_queue.put(
+            f"{worker_name} passed the assembly barrier at {timestamp}"
+        )
+
+    result_queue.put(
+        f"{worker_name} can now enter final vehicle assembly because both the car body and engine are ready"
+    )
+
+
+def _process_without_barrier(
+    worker_name,
+    arrival_delay,
+    result_queue
+):
+    current_process = multiprocessing.current_process()
+
+    result_queue.put(
+        f"{worker_name} started in process name='{current_process.name}', PID={os.getpid()}"
+    )
+
+    time.sleep(arrival_delay)
+
+    timestamp = datetime.fromtimestamp(
+        time.time()
+    ).strftime(
+        "%Y-%m-%d %H:%M:%S.%f"
+    )
+
+    result_queue.put(
+        f"{worker_name} does not depend on vehicle assembly and continued independently at {timestamp}"
+    )
+
+    result_queue.put(
+        f"{worker_name} finished without waiting for the car body or engine"
+    )
+
+
 def scenario_3():
     output = []
 
     result_queue = multiprocessing.Queue()
+
     synchronizer = multiprocessing.Barrier(2)
+
     serializer_lock = multiprocessing.Lock()
     release_timestamp = multiprocessing.Value("d", 0.0)
 
@@ -444,51 +456,62 @@ def scenario_3():
         multiprocessing.Process(
             target=_barrier_managed_worker,
             args=(
-                "Barrier-Worker-1",
+                "Car Body Production",
                 0.25,
                 synchronizer,
                 serializer_lock,
                 release_timestamp,
                 result_queue,
             ),
-            name="p1 - test_with_barrier",
+            name="p1 - Car-Body-Production",
         ),
         multiprocessing.Process(
             target=_barrier_managed_worker,
             args=(
-                "Barrier-Worker-2",
+                "Engine Production",
                 0.60,
                 synchronizer,
                 serializer_lock,
                 release_timestamp,
                 result_queue,
             ),
-            name="p2 - test_with_barrier",
+            name="p2 - Engine-Production",
         ),
         multiprocessing.Process(
             target=_process_without_barrier,
-            args=("Free-Worker-1", 0.10, result_queue),
-            name="p3 - test_without_barrier",
+            args=(
+                "Production Report Generation",
+                0.10,
+                result_queue
+            ),
+            name="p3 - Production-Report",
         ),
         multiprocessing.Process(
             target=_process_without_barrier,
-            args=("Free-Worker-2", 0.15, result_queue),
-            name="p4 - test_without_barrier",
+            args=(
+                "Factory Data Backup",
+                0.15,
+                result_queue
+            ),
+            name="p4 - Factory-Data-Backup",
         ),
     ]
 
     output.append(
         f"Parent process PID={os.getpid()} created multiprocessing.Barrier with parties=2"
     )
+
     output.append(
-        "Processes p1 and p2 are synchronized by the barrier"
+        "Car Body Production and Engine Production must both finish before final vehicle assembly can begin"
     )
+
     output.append(
-        "Processes p3 and p4 do not use the barrier and can continue independently"
+        "Production Report Generation and Factory Data Backup do not depend on vehicle assembly and can continue independently"
     )
 
     for process in processes:
         process.start()
+
         output.append(
             f"Parent started {process.name} with PID={process.pid}"
         )
@@ -497,7 +520,10 @@ def scenario_3():
         process.join()
 
     output.extend(
-        _collect_queue_messages(result_queue, expected_count=14)
+        _collect_queue_messages(
+            result_queue,
+            expected_count=14
+        )
     )
 
     for process in processes:
@@ -506,35 +532,49 @@ def scenario_3():
         )
 
     output.append(
-        "Barrier-based process synchronization workflow finished"
+        "Vehicle factory barrier synchronization workflow finished"
     )
 
     return {
         "method": "process",
         "section": 7,
         "scenario": 3,
-        "title": "Synchronizing Processes with Barrier",
+        "title": "Coordinating Vehicle Assembly Processes with Barrier",
         "problem": (
             "شرح مسئله:\n"
-            "چهار Process اجرا می‌شوند. دو Process باید در یک نقطه مشترک منتظر بمانند "
-            "تا هر دو به آن نقطه برسند و سپس همزمان ادامه دهند. دو Process دیگر هیچ Barrier ندارند "
-            "و بدون انتظار برای بقیه ادامه می‌دهند.\n\n"
+            "در یک کارخانه خودروسازی، یک Process وظیفه تولید بدنه خودرو "
+            "و Process دیگر وظیفه تولید موتور را بر عهده دارد. مرحله مونتاژ "
+            "نهایی فقط زمانی می‌تواند آغاز شود که هر دو قطعه آماده باشند. "
+            "بنابراین، هر کدام که زودتر کارش تمام شود باید در یک نقطه مشترک "
+            "منتظر Process دیگر بماند.\n\n"
+            "در همین زمان، دو Process دیگر وظیفه تهیه گزارش تولید و "
+            "پشتیبان‌گیری از اطلاعات کارخانه را انجام می‌دهند. این فعالیت‌ها "
+            "هیچ وابستگی‌ای به آماده‌شدن بدنه و موتور ندارند و باید بدون "
+            "انتظار ادامه پیدا کنند.\n\n"
             "سؤال:\n"
-            "چگونه می‌توان با multiprocessing.Barrier بخشی از Processها را در یک نقطه همگام کرد "
-            "و تفاوت آن‌ها را با Processهای بدون Barrier مشاهده کرد؟\n\n"
+            "چگونه می‌توان با multiprocessing.Barrier تولید بدنه و موتور را "
+            "پیش از ورود به مرحله مونتاژ هماهنگ کرد، در حالی که Processهای "
+            "مستقل بدون Barrier به فعالیت خود ادامه دهند؟\n\n"
             "مفهوم مورد بررسی:\n"
-            "استفاده از Barrier برای phase synchronization بین Processها"
+            "استفاده از Barrier برای هماهنگ‌کردن Processهای وابسته در پایان "
+            "یک مرحله، بدون متوقف‌کردن Processهای مستقل"
         ),
         "output": output,
         "explanation": (
-            "در این سناریو یک multiprocessing.Barrier با مقدار parties=2 ساخته شده است. "
-            "این یعنی دو Process باید به barrier.wait برسند تا هر دو آزاد شوند. "
-            "Processهای p1 و p2 وارد تابع barrier-managed می‌شوند و بعد از رسیدن به Barrier متوقف می‌مانند. "
-            "وقتی هر دو Process به Barrier رسیدند، Barrier آن‌ها را آزاد می‌کند و هر دو وارد مرحله بعدی می‌شوند. "
-            "برای اینکه همزمانی آزاد شدن آن‌ها واضح‌تر باشد، زمان آزاد شدن Barrier به صورت یک مقدار مشترک ذخیره می‌شود "
-            "و هر دو Process همان timestamp آزادسازی را گزارش می‌کنند. "
-            "در مقابل، Processهای p3 و p4 هیچ Barrier ندارند و بعد از delay کوتاه خودشان بلافاصله ادامه می‌دهند. "
-            "بنابراین خروجی نشان می‌دهد که Barrier برای تقسیم برنامه به فازهای همگام‌شده استفاده می‌شود، "
-            "در حالی که Processهای بدون Barrier مستقل از بقیه ادامه پیدا می‌کنند."
+            "در این سناریو یک multiprocessing.Barrier با parties=2 ساخته "
+            "شده است، زیرا فقط دو Process تولید بدنه و تولید موتور باید "
+            "با یکدیگر هماهنگ شوند. Process تولید بدنه پس از ۰٫۲۵ ثانیه "
+            "آماده می‌شود و به Barrier می‌رسد، اما چون موتور هنوز آماده "
+            "نشده است، در همان نقطه منتظر می‌ماند. Process تولید موتور پس "
+            "از ۰٫۶۰ ثانیه به Barrier می‌رسد. با رسیدن Process دوم، Barrier "
+            "آزاد می‌شود و هر دو Process می‌توانند وارد مرحله مونتاژ نهایی "
+            "خودرو شوند. زمان آزادشدن Barrier در release_timestamp مشترک "
+            "ذخیره می‌شود، بنابراین هر دو Process یک timestamp یکسان برای "
+            "عبور از Barrier گزارش می‌کنند. serializer_lock نیز ثبت این "
+            "زمان و پیام‌های مربوط به عبور را کنترل می‌کند. در مقابل، "
+            "Process تهیه گزارش تولید و Process پشتیبان‌گیری عضو Barrier "
+            "نیستند؛ زیرا فعالیت آن‌ها به آماده‌شدن بدنه و موتور وابسته "
+            "نیست. به همین دلیل، پس از پایان delay خود بدون انتظار برای "
+            "سایر Processها به فعالیتشان ادامه می‌دهند."
         ),
     }
