@@ -285,11 +285,31 @@ def scenario_2():
     }
 
 
-def _request_response_worker(request_queue, response_queue, result_queue):
+def _generate_bot_reply(message_text):
+    normalized_text = message_text.strip().lower()
+
+    if "hello" in normalized_text:
+        return "Hello! How can I help you?"
+
+    if "price" in normalized_text:
+        return "Please send the product name so I can check its price."
+
+    if "order" in normalized_text:
+        return "Your order request has been received."
+
+    return "I received your message. A support agent will respond soon."
+
+
+def _telegram_bot_worker(
+    request_queue,
+    response_queue,
+    result_queue
+):
     current_process = multiprocessing.current_process()
 
     result_queue.put(
-        f"Request-response worker started in process name='{current_process.name}', PID={os.getpid()}"
+        f"Telegram bot worker started in process "
+        f"name='{current_process.name}', PID={os.getpid()}"
     )
 
     while True:
@@ -297,34 +317,34 @@ def _request_response_worker(request_queue, response_queue, result_queue):
 
         if request is None:
             result_queue.put(
-                "Request-response worker received shutdown request"
+                "Telegram bot worker received shutdown sentinel"
             )
             break
 
-        request_id = request["request_id"]
-        product_name = request["product_name"]
-        quantity = request["quantity"]
-        unit_price = request["unit_price"]
+        message_id = request["message_id"]
+        chat_id = request["chat_id"]
+        message_text = request["message_text"]
 
         result_queue.put(
-            f"Request-response worker received request_id={request_id} for product='{product_name}'"
+            f"Telegram bot worker received message_id={message_id} "
+            f"from chat_id={chat_id}"
         )
 
         time.sleep(0.12)
 
-        total_price = quantity * unit_price
+        reply_text = _generate_bot_reply(message_text)
 
         response_queue.put(
             {
-                "request_id": request_id,
-                "product_name": product_name,
-                "total_price": total_price,
+                "message_id": message_id,
+                "chat_id": chat_id,
+                "reply_text": reply_text,
                 "handled_by": current_process.name
             }
         )
 
     result_queue.put(
-        "Request-response worker exits after all requests"
+        "Telegram bot worker exits after processing all messages"
     )
 
 
@@ -336,40 +356,42 @@ def scenario_3():
     result_queue = multiprocessing.Queue()
 
     process = multiprocessing.Process(
-        target=_request_response_worker,
-        args=(request_queue, response_queue, result_queue),
-        name="Request-Response-Worker-Process"
+        target=_telegram_bot_worker,
+        args=(
+            request_queue,
+            response_queue,
+            result_queue
+        ),
+        name="Telegram-Bot-Reply-Worker"
     )
 
-    requests = [
+    user_messages = [
         {
-            "request_id": "REQ-1",
-            "product_name": "Coffee Beans",
-            "quantity": 2,
-            "unit_price": 15
+            "message_id": "MSG-1",
+            "chat_id": 1001,
+            "message_text": "Hello"
         },
         {
-            "request_id": "REQ-2",
-            "product_name": "Milk Pack",
-            "quantity": 5,
-            "unit_price": 4
+            "message_id": "MSG-2",
+            "chat_id": 1002,
+            "message_text": "What is the product price?"
         },
         {
-            "request_id": "REQ-3",
-            "product_name": "Paper Cup",
-            "quantity": 10,
-            "unit_price": 1
+            "message_id": "MSG-3",
+            "chat_id": 1001,
+            "message_text": "I want to place an order"
         },
     ]
 
     output.append(
-        f"Parent process PID={os.getpid()} created request_queue and response_queue"
+        f"Parent process PID={os.getpid()} created "
+        "request_queue and response_queue for Telegram bot messages"
     )
 
     process.start()
 
     output.append(
-        f"Parent started request-response worker with PID={process.pid}"
+        f"Parent started Telegram bot worker with PID={process.pid}"
     )
 
     output.extend(
@@ -379,11 +401,12 @@ def scenario_3():
         )
     )
 
-    for request in requests:
-        request_queue.put(request)
+    for message in user_messages:
+        request_queue.put(message)
 
         output.append(
-            f"Parent sent request_id={request['request_id']} to child process"
+            f"Parent received Telegram message_id="
+            f"{message['message_id']} and sent it to child process"
         )
 
         output.extend(
@@ -397,18 +420,27 @@ def scenario_3():
             response = response_queue.get(timeout=2)
 
             output.append(
-                f"Parent received response for request_id={response['request_id']}: total_price={response['total_price']}, handled_by='{response['handled_by']}'"
+                f"Parent received generated reply for "
+                f"message_id={response['message_id']}: "
+                f"reply='{response['reply_text']}', "
+                f"handled_by='{response['handled_by']}'"
+            )
+
+            output.append(
+                f"Parent sent reply back to Telegram "
+                f"chat_id={response['chat_id']}"
             )
 
         except queue.Empty:
             output.append(
-                f"Warning: parent did not receive response for request_id={request['request_id']}"
+                f"Warning: parent did not receive a reply for "
+                f"message_id={message['message_id']}"
             )
 
     request_queue.put(None)
 
     output.append(
-        "Parent sent shutdown request to child process"
+        "Parent sent shutdown sentinel to Telegram bot worker"
     )
 
     process.join()
@@ -421,29 +453,39 @@ def scenario_3():
     )
 
     output.append(
-        f"Request-response worker exitcode={process.exitcode}"
+        f"Telegram bot worker exitcode={process.exitcode}"
     )
 
     output.append(
-        "Bidirectional Queue exchange workflow finished"
+        "Bidirectional Telegram bot Queue workflow finished"
     )
 
     return {
         "method": "process",
         "section": 6,
         "scenario": 3,
-        "title": "Bidirectional Request and Response Queues",
+        "title": "Telegram Bot Request and Response Queues",
         "problem":
             "شرح مسئله:\n"
-            "Process اصلی فقط نمی‌خواهد task ارسال کند؛ بلکه برای هر درخواست باید پاسخ محاسبه‌شده را هم از child process دریافت کند. "
-            "برای این کار باید مسیر ارسال درخواست و مسیر برگشت پاسخ جدا باشند.\n\n"
+            "یک ربات تلگرام پیام کاربران را در parent process دریافت می‌کند، "
+            "اما تولید پاسخ در یک child process جداگانه انجام می‌شود. "
+            "پس از تولید پاسخ، child باید آن را به parent برگرداند تا parent "
+            "پاسخ را برای کاربر ارسال کند.\n\n"
             "سؤال:\n"
-            "چگونه می‌توان ارتباط دوطرفه بین parent و child process را با دو Queue جداگانه پیاده‌سازی کرد؟\n\n"
+            "چگونه می‌توان با دو multiprocessing.Queue جداگانه، پیام کاربر "
+            "را از parent به child فرستاد و پاسخ تولیدشده را از child به "
+            "parent بازگرداند؟\n\n"
             "مفهوم مورد بررسی:\n"
-            "استفاده از request_queue و response_queue برای request/response communication بین Processها",
+            "پیاده‌سازی ارتباط دوطرفه request/response میان Processها با "
+            "request_queue و response_queue",
         "output": output,
         "explanation":
-            "در این سناریو دو Queue جدا استفاده می‌شود. parent درخواست‌ها را داخل request_queue قرار می‌دهد و child process بعد از پردازش، پاسخ را داخل response_queue می‌گذارد. "
-            "این الگو شبیه یک ارتباط request/response ساده است. تفاوت آن با سناریوی اول این است که ارتباط فقط یک‌طرفه نیست؛ parent برای هر درخواست یک پاسخ دریافت می‌کند. "
-            "تفاوت آن با سناریوی دوم هم این است که اینجا تمرکز روی رابطه دوطرفه parent و یک worker است، نه چند producer و یک consumer."
+            "در این سناریو parent نقش بخش دریافت و ارسال پیام ربات تلگرام را دارد. "
+            "پیام کاربر از طریق request_queue به child process منتقل می‌شود. "
+            "Child پاسخ را تولید می‌کند و آن را از طریق response_queue به parent "
+            "برمی‌گرداند. Parent سپس پاسخ را برای chat_id مربوطه ارسال می‌کند. "
+            "جدا بودن Queue درخواست و پاسخ باعث می‌شود جهت حرکت داده‌ها مشخص و "
+            "ساختار ارتباط خواناتر باشد. همچنین message_id برای ارتباط دادن هر "
+            "پاسخ به پیام اصلی استفاده می‌شود. result_queue فقط برای انتقال "
+            "لاگ‌های نمایشی سناریو است."
     }
