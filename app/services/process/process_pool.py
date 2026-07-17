@@ -16,44 +16,7 @@ def _calculate_order_total(order_task):
         "order_id": order_id,
         "total_price": total_price,
         "message":
-            f"{order_id} calculated total={total_price} inside process name='{current_process.name}', "
-            f"PID={os.getpid()}, delay={delay}"
-    }
-
-
-def _generate_report_job(report_task):
-    report_name, delay, should_fail = report_task
-
-    current_process = multiprocessing.current_process()
-
-    time.sleep(delay)
-
-    if should_fail:
-        raise ValueError(
-            f"Report '{report_name}' contains invalid source data"
-        )
-
-    return {
-        "report_name": report_name,
-        "message":
-            f"Report '{report_name}' generated successfully inside process name='{current_process.name}', "
-            f"PID={os.getpid()}, delay={delay}"
-    }
-
-
-def _create_thumbnail_job(thumbnail_task):
-    image_name, delay = thumbnail_task
-
-    current_process = multiprocessing.current_process()
-
-    time.sleep(delay)
-
-    return {
-        "image_name": image_name,
-        "delay": delay,
-        "message":
-            f"Thumbnail for '{image_name}' finished inside process name='{current_process.name}', "
-            f"PID={os.getpid()}, delay={delay}"
+            f"{order_id} calculated total={total_price} inside process name='{current_process.name}', PID={os.getpid()}, delay={delay}"
     }
 
 
@@ -129,13 +92,54 @@ def scenario_1():
     }
 
 
+def _process_file_job(file_task):
+    file_name, delay, failure_message = file_task
+
+    current_process = multiprocessing.current_process()
+
+    time.sleep(delay)
+
+    if failure_message is not None:
+        raise ValueError(
+            failure_message
+        )
+
+    return {
+        "file_name": file_name,
+        "message":
+            f"File '{file_name}' processed successfully inside process name='{current_process.name}', PID={os.getpid()}, delay={delay}"
+    }
+
+
 def scenario_2():
     output = []
 
-    report_tasks = [
-        ("Daily-Sales", 0.20, False),
-        ("Corrupted-Inventory", 0.15, True),
-        ("Customer-Summary", 0.10, False),
+    file_tasks = [
+        (
+            "report.pdf",
+            0.20,
+            None
+        ),
+        (
+            "image.png",
+            0.15,
+            None
+        ),
+        (
+            "data.csv",
+            0.10,
+            "File 'data.csv' is corrupted"
+        ),
+        (
+            "video.mp4",
+            0.25,
+            None
+        ),
+        (
+            "backup.zip",
+            0.12,
+            "File format for 'backup.zip' is not supported"
+        ),
     ]
 
     output.append(
@@ -143,7 +147,7 @@ def scenario_2():
     )
 
     output.append(
-        "Parent submits report jobs with Pool.apply_async"
+        "Parent submits file-processing jobs with Pool.apply_async"
     )
 
     pool = multiprocessing.Pool(
@@ -152,25 +156,25 @@ def scenario_2():
 
     async_results = []
 
-    for report_task in report_tasks:
-        report_name = report_task[0]
+    for file_task in file_tasks:
+        file_name = file_task[0]
 
         async_result = pool.apply_async(
-            _generate_report_job,
-            args=(report_task,)
+            _process_file_job,
+            args=(file_task,)
         )
 
         async_results.append(
-            (report_name, async_result)
+            (file_name, async_result)
         )
 
         output.append(
-            f"Parent submitted async job for report='{report_name}'"
+            f"Parent submitted async job for file='{file_name}'"
         )
 
     pool.close()
 
-    for report_name, async_result in async_results:
+    for file_name, async_result in async_results:
         try:
             result = async_result.get(
                 timeout=2
@@ -182,7 +186,7 @@ def scenario_2():
 
         except Exception as error:
             output.append(
-                f"Parent caught failure for report='{report_name}': {type(error).__name__}: {error}"
+                f"Parent caught failure for file='{file_name}': {type(error).__name__}: {error}"
             )
 
     pool.join()
@@ -192,28 +196,52 @@ def scenario_2():
     )
 
     output.append(
-        "Pool.apply_async workflow finished"
+        "Pool.apply_async file-processing workflow finished"
     )
 
     return {
         "method": "process",
         "section": 8,
         "scenario": 2,
-        "title": "Asynchronous Pool Jobs with Per-Task Error Handling",
+        "title": "Asynchronous File Processing with Per-Task Error Handling",
         "problem":
             "شرح مسئله:\n"
-            "چند گزارش باید در Process Pool اجرا شوند. بعضی jobها ممکن است موفق شوند و بعضی ممکن است خطا بدهند. "
-            "parent باید بتواند نتیجه هر job را جداگانه بررسی کند.\n\n"
+            "کاربر پنج فایل را برای پردازش ارسال کرده است. بعضی فایل‌ها سالم هستند، "
+            "اما ممکن است یک فایل خراب باشد یا فرمت آن توسط سیستم پشتیبانی نشود. "
+            "خرابی یک فایل نباید باعث متوقف‌شدن پردازش سایر فایل‌ها شود و parent باید "
+            "نتیجه موفقیت یا خطای هر فایل را جداگانه بررسی کند.\n\n"
             "سؤال:\n"
-            "چگونه می‌توان با Pool.apply_async چند job مستقل را ارسال کرد و success/error هر job را جداگانه مدیریت کرد؟\n\n"
+            "چگونه می‌توان با Pool.apply_async فایل‌ها را به‌صورت مستقل در یک "
+            "Process Pool پردازش کرد و خطای هر فایل را هنگام دریافت نتیجه مدیریت کرد؟\n\n"
             "مفهوم مورد بررسی:\n"
-            "استفاده از apply_async، AsyncResult.get و مدیریت exceptionهای worker process",
+            "استفاده از apply_async، دریافت AsyncResult برای هر فایل، فراخوانی get "
+            "و مدیریت جداگانه Exceptionهای ایجادشده در worker process",
         "output": output,
         "explanation":
-            "در این سناریو parent هر job را با apply_async به Pool ارسال می‌کند. برخلاف map که کل لیست را یکجا برمی‌گرداند، "
-            "apply_async برای هر job یک AsyncResult جدا می‌دهد. parent بعداً با get نتیجه هر job را می‌گیرد. "
-            "اگر worker داخل Pool خطا بدهد، همان خطا هنگام get در parent دوباره raise می‌شود و parent می‌تواند آن را مدیریت کند. "
-            "این سناریو با سناریوی اول فرق دارد، چون تمرکز آن روی ارسال async jobها و مدیریت خطای تک‌تک taskهاست."
+            "در این سناریو parent پنج فایل را به صورت jobهای مستقل با apply_async "
+            "به Process Pool ارسال می‌کند. apply_async برای هر فایل یک AsyncResult "
+            "جداگانه برمی‌گرداند و parent همه این نتیجه‌های موقت را در یک لیست نگه "
+            "می‌دارد. سپس parent روی هر AsyncResult متد get را فراخوانی می‌کند. "
+            "اگر پردازش فایل موفق باشد، نتیجه به parent بازگردانده می‌شود. اگر worker "
+            "هنگام پردازش فایل Exception ایجاد کرده باشد، همان Exception هنگام get "
+            "در parent دوباره raise می‌شود و با try/except مدیریت می‌شود. بنابراین "
+            "خراب‌بودن data.csv یا پشتیبانی‌نشدن backup.zip مانع پردازش موفق "
+            "report.pdf، image.png و video.mp4 نمی‌شود."
+    }
+
+
+def _create_thumbnail_job(thumbnail_task):
+    image_name, delay = thumbnail_task
+
+    current_process = multiprocessing.current_process()
+
+    time.sleep(delay)
+
+    return {
+        "image_name": image_name,
+        "delay": delay,
+        "message":
+            f"Thumbnail for '{image_name}' finished inside process name='{current_process.name}', PID={os.getpid()}, delay={delay}"
     }
 
 
