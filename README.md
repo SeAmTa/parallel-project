@@ -1,496 +1,572 @@
-﻿# Parallel Processing Final Project
+﻿<div dir="rtl" align="right">
 
-A FastAPI-based educational web application for demonstrating **Thread-Based Parallelism** and **Process-Based Parallelism** in Python.
+# پروژه نهایی پردازش موازی
 
-This project was developed as a final project for the Parallel Processing course. It provides a web interface and API endpoints for running multiple parallel programming scenarios. Each scenario returns a problem description, execution output, and an explanation of why the output is produced.
+یک برنامه وب آموزشی مبتنی بر **FastAPI** برای نمایش مفاهیم پردازش موازی، اجرای هم‌زمان، همگام‌سازی و ارتباط میان Threadها و Processها در زبان Python.
 
-## GitHub Repository
+این پروژه به‌عنوان پروژه نهایی درس **پردازش موازی** طراحی شده است و مجموعه‌ای از سناریوهای عملی را از طریق رابط وب، REST API و خروجی زنده مبتنی بر Server-Sent Events در اختیار کاربر قرار می‌دهد.
 
-Repository:
+---
 
-```text
-https://github.com/SeAmTa/parallel-project
-```
+## نسخه آنلاین پروژه
 
-Clone URL:
+پروژه از طریق آدرس زیر در دسترس است:
 
-```text
-https://github.com/SeAmTa/parallel-project.git
-```
+<div dir="ltr" align="left">
 
-## Project Overview
+[https://amirhosseintaheri80.ir](https://amirhosseintaheri80.ir)
 
-The application demonstrates two major categories of parallel execution in Python:
+</div>
+
+مخزن پروژه در GitHub:
+
+<div dir="ltr" align="left">
+
+[https://github.com/SeAmTa/parallel-project](https://github.com/SeAmTa/parallel-project)
+
+</div>
+
+---
+
+## معرفی پروژه
+
+هدف این پروژه، آموزش عملی تفاوت‌ها و کاربردهای دو روش اصلی اجرای هم‌زمان در پایتون است:
+
+<div dir="ltr" align="left">
 
 1. **Thread-Based Parallelism**
 2. **Process-Based Parallelism**
 
-The user can select:
+</div>
 
-- Parallelism method: `thread` or `process`
-- Section number
-- Scenario number
+کاربر در رابط وب می‌تواند روش اجرا، شماره بخش و شماره سناریو را انتخاب کند. سپس برنامه اطلاعات زیر را نمایش می‌دهد:
 
-After execution, the web page displays:
+- عنوان سناریو
+- شرح مسئله
+- خروجی واقعی اجرای برنامه
+- توضیح آموزشی علت تولید خروجی
+- روند اجرای مرحله‌به‌مرحله
 
-- Scenario title
-- Problem statement
-- Runtime output
-- Educational explanation
+این ساختار باعث می‌شود کاربر علاوه بر مشاهده نتیجه، رفتار واقعی Threadها و Processها را نیز هنگام اجرا بررسی کند.
 
-The project also exposes REST API endpoints for direct testing.
+---
 
-## Main Features
+## اهداف آموزشی
 
-- FastAPI backend
-- Web UI for scenario selection
-- Thread-based examples using Python `threading`
-- Process-based examples using Python `multiprocessing`
-- Server-Sent Events for streaming scenario output to the browser
-- Dockerized application
-- Nginx reverse proxy configuration
-- Ready for deployment on a Linux VPS
+این پروژه با اهداف زیر پیاده‌سازی شده است:
 
-## Technologies Used
+- آشنایی با ایجاد و مدیریت Threadها
+- آشنایی با ایجاد و مدیریت Processها
+- بررسی تفاوت حافظه مشترک و حافظه مستقل
+- شناخت مشکلات Race Condition
+- کار با ابزارهای همگام‌سازی
+- انتقال داده میان واحدهای اجرایی
+- بررسی ترتیب شروع و پایان وظایف
+- شناخت Process Pool و Worker Pool
+- مشاهده خروجی برنامه به‌صورت زنده
+- اجرای پروژه در محیط Docker و سرور واقعی
 
-- Python 3.11
-- FastAPI
-- Uvicorn
-- HTML
-- CSS
-- JavaScript
-- Docker
-- Docker Compose
-- Nginx
-- Git
-- GitHub
+---
 
-## Project Structure
+## قابلیت‌های اصلی
 
-The project is organized as follows:
+- رابط وب برای انتخاب و اجرای سناریوها
+- Backend مبتنی بر FastAPI
+- پشتیبانی از Threading و Multiprocessing
+- نمایش خروجی مرحله‌به‌مرحله با Server-Sent Events
+- ارائه REST API برای اجرای مستقیم سناریوها
+- معماری ماژولار و قابل توسعه
+- اجرای مستقل هر سناریو
+- مدیریت خطاهای ورودی
+- اجرای کانتینری با Docker
+- استفاده از Nginx به‌عنوان Reverse Proxy
+- پشتیبانی از HTTPS
+- استقرار روی VPS لینوکسی
+- راه‌اندازی خودکار کانتینرها پس از Restart سرور
+
+---
+
+## فناوری‌های استفاده‌شده
+
+<div dir="rtl" align="center">
+
+| فناوری | کاربرد |
+|:---:|:---:|
+| Python 3.11 | زبان اصلی پروژه |
+| FastAPI | پیاده‌سازی Backend و API |
+| Uvicorn | اجرای سرور ASGI |
+| Threading | اجرای سناریوهای Thread |
+| Multiprocessing | اجرای سناریوهای Process |
+| Server-Sent Events | ارسال زنده خروجی به مرورگر |
+| HTML | ساخت رابط کاربری |
+| CSS | طراحی رابط کاربری |
+| JavaScript | ارتباط رابط وب با Backend |
+| Docker | کانتینرسازی برنامه |
+| Docker Compose | مدیریت سرویس‌ها |
+| Nginx | Reverse Proxy و مدیریت ترافیک |
+| Certbot | دریافت و آزمایش تمدید گواهی SSL |
+| Git و GitHub | کنترل نسخه و نگهداری کد |
+
+</div>
+
+---
+
+## معماری پروژه
+
+جریان کلی درخواست‌ها در نسخه مستقرشده به شکل زیر است:
+
+<pre dir="ltr" align="left">
+User
+  |
+  v
+Domain + HTTPS
+  |
+  v
+Nginx Reverse Proxy
+  |
+  v
+FastAPI Application
+  |
+  +-- Thread Scenarios
+  |
+  +-- Process Scenarios
+  |
+  `-- SSE Stream
+</pre>
+
+در این معماری، Nginx درخواست‌های ورودی را دریافت کرده و به کانتینر FastAPI منتقل می‌کند. FastAPI سناریوی انتخاب‌شده را اجرا می‌کند و نتیجه از طریق API یا جریان SSE به مرورگر ارسال می‌شود.
+
+---
+
+## ساختار پروژه
+
+<div dir="ltr" align="left">
 
 ```text
 parallel-project/
 │
-│   .gitignore
-│   .dockerignore
-│   Dockerfile
-│   docker-compose.yml
-│   nginx.conf
-│   README.md
-│   requirements.txt
-│
 ├── app/
-│   │   __init__.py
-│   │   main.py
+│   ├── __init__.py
+│   ├── main.py
 │   │
 │   ├── routes/
-│   │   │   __init__.py
-│   │   │   thread.py
-│   │   │   process.py
-│   │   │   stream.py
+│   │   ├── __init__.py
+│   │   ├── thread.py
+│   │   ├── process.py
+│   │   └── stream.py
 │   │
 │   ├── services/
-│   │   │   __init__.py
-│   │   │   dispatcher.py
+│   │   ├── dispatcher.py
 │   │   │
 │   │   ├── thread/
-│   │   │   │   defining_thread.py
-│   │   │   │   current_thread.py
-│   │   │   │   thread_subclass.py
-│   │   │   │   lock_sync.py
-│   │   │   │   rlock_sync.py
-│   │   │   │   semaphore_sync.py
-│   │   │   │   barrier_sync.py
-│   │   │   │   event_sync.py
-│   │   │   │   condition_sync.py
-│   │   │   │   queue_sync.py
+│   │   │   ├── defining_thread.py
+│   │   │   ├── current_thread.py
+│   │   │   ├── thread_subclass.py
+│   │   │   ├── lock_sync.py
+│   │   │   ├── rlock_sync.py
+│   │   │   ├── semaphore_sync.py
+│   │   │   ├── barrier_sync.py
+│   │   │   ├── event_sync.py
+│   │   │   ├── condition_sync.py
+│   │   │   └── queue_sync.py
 │   │   │
-│   │   ├── process/
-│   │   │   │   spawning_process.py
-│   │   │   │   naming_process.py
-│   │   │   │   background_process.py
-│   │   │   │   killing_process.py
-│   │   │   │   process_subclass.py
-│   │   │   │   queue_exchange.py
-│   │   │   │   process_sync.py
-│   │   │   │   process_pool.py
+│   │   └── process/
+│   │       ├── spawning_process.py
+│   │       ├── naming_process.py
+│   │       ├── background_process.py
+│   │       ├── killing_process.py
+│   │       ├── process_subclass.py
+│   │       ├── queue_exchange.py
+│   │       ├── process_sync.py
+│   │       └── process_pool.py
 │   │
-│   ├── templates/
-│   │   │   index.html
+│   └── templates/
+│       └── index.html
 │
 ├── static/
-│   │   style.css
+│   └── style.css
+│
+├── docs/
+│   └── images/
+│
+├── Dockerfile
+├── docker-compose.yml
+├── nginx.conf
+├── requirements.txt
+├── .dockerignore
+├── .gitignore
+└── README.md
 ```
 
-## Application Architecture
+</div>
 
-The application uses a layered structure:
+پوشه `certbot` شامل فایل‌های گواهی و کلید خصوصی فقط روی سرور نگهداری می‌شود و به دلیل مسائل امنیتی در GitHub قرار نمی‌گیرد.
 
-- `app/main.py` creates the FastAPI application, mounts static files, includes routers, and serves the main HTML page.
-- `app/routes/thread.py` exposes API endpoints for thread-based scenarios.
-- `app/routes/process.py` exposes API endpoints for process-based scenarios.
-- `app/routes/stream.py` provides Server-Sent Events for streaming scenario outputs to the frontend.
-- `app/services/dispatcher.py` maps section and scenario numbers to the correct scenario functions.
-- `app/services/thread/` contains all thread-based examples.
-- `app/services/process/` contains all process-based examples.
-- `app/templates/index.html` contains the web interface.
-- `static/style.css` contains the UI styling.
-- `Dockerfile`, `docker-compose.yml`, and `nginx.conf` are used for containerized execution and reverse proxy configuration.
+---
 
-## API Endpoints
+## بخش‌های مربوط به Thread
 
-### Thread-Based API
+قسمت Thread شامل **۱۰ بخش** است و هر بخش سه سناریوی متفاوت دارد.
 
-```text
+<div dir="rtl" align="center">
+
+| بخش | موضوع | مفاهیم اصلی |
+|:---:|:---:|:---:|
+| ۱ | تعریف Thread | `Thread`، `start`، `join` |
+| ۲ | شناسایی Thread جاری | `current_thread`، نام Thread |
+| ۳ | ساخت زیرکلاس Thread | بازنویسی متد `run` |
+| ۴ | همگام‌سازی با Lock | Race Condition و Mutual Exclusion |
+| ۵ | همگام‌سازی با RLock | قفل بازگشتی و فراخوانی تو در تو |
+| ۶ | همگام‌سازی با Semaphore | محدودسازی دسترسی هم‌زمان |
+| ۷ | همگام‌سازی با Barrier | انتظار گروهی Threadها |
+| ۸ | همگام‌سازی با Event | ارسال سیگنال و توقف کنترل‌شده |
+| ۹ | همگام‌سازی با Condition | `wait`، `notify` و `notify_all` |
+| ۱۰ | ارتباط با Queue | FIFO، PriorityQueue و Task Tracking |
+
+</div>
+
+### نمونه مفاهیم بررسی‌شده در سناریوهای Thread
+
+- تفاوت ترتیب شروع و پایان Threadها
+- تأثیر استفاده زودهنگام از `join()`
+- تشخیص Thread اصلی و Worker Thread
+- نگهداری State در زیرکلاس Thread
+- ایجاد عمدی Race Condition
+- اصلاح Race Condition با Lock
+- استفاده از RLock در توابع تو در تو
+- محدودکردن تعداد وظایف هم‌زمان
+- هماهنگی چندمرحله‌ای با Barrier
+- توقف Graceful با Event
+- پیاده‌سازی Bounded Buffer
+- استفاده از Queue و Sentinel
+
+---
+
+## بخش‌های مربوط به Process
+
+قسمت Process شامل **۸ بخش** است و هر بخش سه سناریو دارد.
+
+<div dir="rtl" align="center">
+
+| بخش | موضوع | مفاهیم اصلی |
+|:---:|:---:|:---:|
+| ۱ | ایجاد Process | `Process`، `start`، `join` |
+| ۲ | نام‌گذاری Process | نام پیش‌فرض و سفارشی |
+| ۳ | Process پس‌زمینه | Daemon و Non-Daemon |
+| ۴ | متوقف‌کردن Process | Timeout، Event و Terminate |
+| ۵ | ساخت زیرکلاس Process | بازنویسی `run` و Exit Code |
+| ۶ | ارتباط با Queue | ارتباط یک‌طرفه و دوطرفه |
+| ۷ | همگام‌سازی Processها | Value، Lock، Semaphore و Barrier |
+| ۸ | Process Pool | `map`، `apply_async` و `imap_unordered` |
+
+</div>
+
+### نمونه مفاهیم بررسی‌شده در سناریوهای Process
+
+- ایجاد یک یا چند Child Process
+- بررسی PID والد و فرزند
+- استقلال حافظه Processها
+- تغییر رفتار بر اساس نام Process
+- بررسی Exit Code
+- تفاوت Daemon و Non-Daemon
+- توقف کنترل‌شده با Event
+- استفاده از `terminate()`
+- انتقال داده با Multiprocessing Queue
+- استفاده از Sentinel برای پایان پردازش
+- ارتباط Request و Response
+- متغیر مشترک با `multiprocessing.Value`
+- محدودسازی دسترسی با Semaphore
+- اجرای مجموعه‌ای از وظایف با Process Pool
+- تفاوت ترتیب ورودی و ترتیب پایان
+
+---
+
+## مسیرهای API
+
+### اجرای سناریوهای Thread
+
+<div dir="ltr" align="left">
+
+```http
 GET /api/thread/{section}/{scenario}
 ```
 
-Example:
+نمونه:
 
 ```text
-http://127.0.0.1:8000/api/thread/1/1
+/api/thread/1/1
 ```
 
-### Process-Based API
+</div>
 
-```text
+### اجرای سناریوهای Process
+
+<div dir="ltr" align="left">
+
+```http
 GET /api/process/{section}/{scenario}
 ```
 
-Example:
+نمونه:
 
 ```text
-http://127.0.0.1:8000/api/process/8/3
+/api/process/8/3
 ```
 
-### Streaming Endpoint
+</div>
 
-```text
+### دریافت خروجی زنده
+
+<div dir="ltr" align="left">
+
+```http
 GET /stream/{method}/{section}/{scenario}
 ```
 
-Examples:
+نمونه برای Thread:
 
 ```text
 /stream/thread/1/1
+```
+
+نمونه برای Process:
+
+```text
 /stream/process/8/3
 ```
 
-The streaming endpoint is used by the web interface to display the scenario output step by step.
+</div>
 
-## Output Format
+مسیر Stream از Server-Sent Events استفاده می‌کند و اطلاعات سناریو را به‌صورت مرحله‌به‌مرحله به رابط وب ارسال می‌کند.
 
-Each scenario returns a structured response similar to this:
+---
+
+## قالب پاسخ API
+
+هر سناریو پاسخی مشابه ساختار زیر تولید می‌کند:
+
+<div dir="ltr" align="left">
 
 ```json
 {
   "method": "thread",
   "section": 1,
   "scenario": 1,
-  "title": "Scenario title",
-  "problem": "Problem description",
+  "title": "عنوان سناریو",
+  "problem": "شرح مسئله",
   "output": [
-    "Runtime output line 1",
-    "Runtime output line 2"
+    "خط اول خروجی",
+    "خط دوم خروجی"
   ],
-  "explanation": "Educational explanation"
+  "explanation": "توضیح آموزشی نتیجه"
 }
 ```
 
-## Thread-Based Parallelism Sections
+</div>
 
-The thread-based part contains 10 sections. Each section has 3 scenarios. The scenarios are designed to be technically different, not only different in story.
+---
 
-| Section | Topic | Scenario 1 | Scenario 2 | Scenario 3 |
-|---:|---|---|---|---|
-| 1 | Defining a Thread | Multiple independent coffee order threads | Different completion order with different delays | Immediate join causing sequential behavior |
-| 2 | Determining the Current Thread | Logging current thread name | Role-based behavior by thread name | Detecting main/worker thread context |
-| 3 | Defining a Thread Subclass | Basic Thread subclass | Subclass with persistent state | Multi-step workflow inside subclass |
-| 4 | Lock Synchronization | Race condition without Lock | Correct shared update with Lock | Protected ATM-style central logging |
-| 5 | RLock Synchronization | Nested lock acquisition | Multi-level workflow with nested calls | Recursive scanner using RLock |
-| 6 | Semaphore Synchronization | Parking lot capacity limit | Download server capacity limit | Producer/consumer signaling |
-| 7 | Barrier Synchronization | Common start point | Coordinator selection by barrier return value | Multi-phase synchronization |
-| 8 | Event Synchronization | One-to-many start signal | Graceful shutdown signal | Timeout and fallback behavior |
-| 9 | Condition Synchronization | Single waiter notification | Multiple waiters with predicate | Custom bounded buffer |
-| 10 | Queue Communication | FIFO producer/consumer | PriorityQueue processing | task_done and join with multiple workers |
+## اجرای پروژه بدون Docker
 
-### Thread Section Details
+### ۱. دریافت پروژه
 
-#### 1. Defining a Thread
-
-This section demonstrates the basic creation and execution of Python threads using `threading.Thread`.
-
-- Scenario 1 creates one independent thread for each coffee order.
-- Scenario 2 shows that threads may finish in a different order from the order in which they were started.
-- Scenario 3 shows that using `join()` immediately after each `start()` can make the execution effectively sequential.
-
-#### 2. Determining the Current Thread
-
-This section demonstrates how to identify the currently running thread.
-
-- Scenario 1 logs the name of the current thread.
-- Scenario 2 changes behavior based on the thread name.
-- Scenario 3 shows the difference between the main application context and worker thread context.
-
-#### 3. Defining a Thread Subclass
-
-This section demonstrates object-oriented thread design by subclassing `threading.Thread`.
-
-- Scenario 1 overrides the `run()` method.
-- Scenario 2 stores state inside the thread object and reads it after `join()`.
-- Scenario 3 implements a multi-step workflow using helper methods inside the subclass.
-
-#### 4. Thread Synchronization with Lock
-
-This section demonstrates how `Lock` prevents unsafe access to shared data.
-
-- Scenario 1 intentionally shows a race condition.
-- Scenario 2 fixes the shared update problem using `Lock`.
-- Scenario 3 protects multiple shared resources such as log numbering and log storage.
-
-#### 5. Thread Synchronization with RLock
-
-This section demonstrates re-entrant locking.
-
-- Scenario 1 uses nested functions that acquire the same lock.
-- Scenario 2 applies RLock in a multi-level workflow.
-- Scenario 3 uses RLock in a recursive function.
-
-#### 6. Thread Synchronization with Semaphore
-
-This section demonstrates limiting concurrent access to a resource.
-
-- Scenario 1 limits parking access to two cars.
-- Scenario 2 limits concurrent downloads.
-- Scenario 3 uses a semaphore as a signaling mechanism.
-
-#### 7. Thread Synchronization with Barrier
-
-This section demonstrates waiting until a group of threads reaches the same point.
-
-- Scenario 1 starts all workers after all of them are ready.
-- Scenario 2 uses the barrier return value to select one coordinator.
-- Scenario 3 synchronizes workers across multiple phases.
-
-#### 8. Thread Synchronization with Event
-
-This section demonstrates event-based signaling.
-
-- Scenario 1 uses one event to start multiple workers.
-- Scenario 2 uses an event for graceful shutdown.
-- Scenario 3 uses timeout behavior and fallback logic.
-
-#### 9. Thread Synchronization with Condition
-
-This section demonstrates condition variables.
-
-- Scenario 1 uses `wait()` and `notify()`.
-- Scenario 2 uses `wait_for()` and `notify_all()`.
-- Scenario 3 implements a bounded buffer with full and empty conditions.
-
-#### 10. Thread Communication with Queue
-
-This section demonstrates safe communication between threads.
-
-- Scenario 1 uses a FIFO queue.
-- Scenario 2 uses a priority queue.
-- Scenario 3 uses `task_done()` and `join()` to track task completion.
-
-## Process-Based Parallelism Sections
-
-The process-based part contains 8 sections. Each section has 3 scenarios based on Python `multiprocessing`.
-
-| Section | Topic | Scenario 1 | Scenario 2 | Scenario 3 |
-|---:|---|---|---|---|
-| 1 | Spawning a Process | One child process and join | Multiple independent processes | Memory isolation between parent and child |
-| 2 | Naming a Process | Default and custom process names | Role-based behavior by process name | Monitoring exit codes by process name |
-| 3 | Background Process | Daemon background logger | Non-daemon finite process | Daemon process cannot create child |
-| 4 | Killing a Process | join(timeout) then terminate | Graceful stop with Event | Selective termination of stuck process |
-| 5 | Process Subclass | Basic Process subclass | State isolation in subclass | Workflow subclass with custom exit code |
-| 6 | Queue Exchange | One-way parent-to-child Queue | Multiple producers and one consumer | Bidirectional request/response queues |
-| 7 | Process Synchronization | Value and Lock | Semaphore capacity limit | Barrier synchronization |
-| 8 | Process Pool | Pool.map ordered results | apply_async with success/error handling | imap_unordered completion order |
-
-### Process Section Details
-
-#### 1. Spawning a Process
-
-This section demonstrates basic process creation.
-
-- Scenario 1 creates one child process and waits for it using `join()`.
-- Scenario 2 runs multiple independent processes.
-- Scenario 3 shows that parent and child processes do not share normal memory.
-
-#### 2. Naming a Process
-
-This section demonstrates process names and process identity.
-
-- Scenario 1 compares default and custom process names.
-- Scenario 2 changes behavior based on the process name.
-- Scenario 3 monitors exit codes for named processes.
-
-#### 3. Background Process
-
-This section demonstrates daemon and non-daemon processes.
-
-- Scenario 1 runs a daemon logger in the background.
-- Scenario 2 runs a normal non-daemon process and waits for completion.
-- Scenario 3 shows that a daemon process cannot create a child process.
-
-#### 4. Killing a Process
-
-This section demonstrates process termination strategies.
-
-- Scenario 1 waits with timeout and then terminates a long-running process.
-- Scenario 2 uses an Event for graceful process shutdown.
-- Scenario 3 terminates only the stuck process among several processes.
-
-#### 5. Process Subclass
-
-This section demonstrates subclassing `multiprocessing.Process`.
-
-- Scenario 1 overrides the `run()` method.
-- Scenario 2 shows that child-side state changes do not update the parent object.
-- Scenario 3 uses helper methods and a custom exit code.
-
-#### 6. Queue Exchange Between Processes
-
-This section demonstrates inter-process communication using queues.
-
-- Scenario 1 sends tasks from parent to child using a queue and a sentinel value.
-- Scenario 2 uses multiple producer processes and one consumer process.
-- Scenario 3 uses request and response queues for two-way communication.
-
-#### 7. Process Synchronization
-
-This section demonstrates synchronization between processes.
-
-- Scenario 1 uses `multiprocessing.Value` with `Lock`.
-- Scenario 2 uses `Semaphore` to limit concurrent process access.
-- Scenario 3 uses `multiprocessing.Barrier` to compare processes that wait at a synchronization point with processes that continue without a barrier.
-
-#### 8. Process Pool
-
-This section demonstrates high-level worker pools.
-
-- Scenario 1 uses `Pool.map()` and shows ordered results.
-- Scenario 2 uses `Pool.apply_async()` and handles success/error cases.
-- Scenario 3 uses `Pool.imap_unordered()` and shows completion-order results.
-
-## Running the Project Locally Without Docker
-
-First, clone the repository:
+<div dir="ltr" align="left">
 
 ```bash
 git clone https://github.com/SeAmTa/parallel-project.git
 cd parallel-project
 ```
 
-Create a virtual environment:
+</div>
+
+### ۲. ساخت محیط مجازی
+
+<div dir="ltr" align="left">
 
 ```bash
 python -m venv .venv
 ```
 
-Activate the virtual environment on Windows PowerShell:
+</div>
+
+فعال‌سازی در Windows PowerShell:
+
+<div dir="ltr" align="left">
 
 ```powershell
 .venv\Scripts\Activate.ps1
 ```
 
-Install dependencies:
+</div>
+
+فعال‌سازی در Linux یا macOS:
+
+<div dir="ltr" align="left">
+
+```bash
+source .venv/bin/activate
+```
+
+</div>
+
+### ۳. نصب وابستگی‌ها
+
+<div dir="ltr" align="left">
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Run the FastAPI application:
+</div>
+
+### ۴. اجرای برنامه
+
+<div dir="ltr" align="left">
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-Open the application in the browser:
+</div>
+
+پس از اجرا، برنامه در آدرس زیر در دسترس است:
+
+<div dir="ltr" align="left">
 
 ```text
 http://127.0.0.1:8000
 ```
 
-Example API endpoints:
+</div>
 
-```text
-http://127.0.0.1:8000/api/thread/1/1
-http://127.0.0.1:8000/api/process/8/3
+---
+
+## اجرای محلی پروژه با Docker
+
+فایل اصلی `docker-compose.yml` برای محیط سرور و اجرای Nginx همراه با HTTPS تنظیم شده است. به همین دلیل برای اجرای ساده در سیستم توسعه، یک فایل محلی به نام `docker-compose.override.yml` ساخته می‌شود. این فایل فقط روی سیستم توسعه باقی می‌ماند و وارد GitHub نمی‌شود.
+
+محتوای فایل محلی:
+
+<div dir="ltr" align="left">
+
+```yaml
+services:
+  app:
+    ports:
+      - "8000:8000"
+
+  nginx:
+    profiles:
+      - production
 ```
 
-## Running the Project with Docker and Nginx
+</div>
 
-The project is fully Dockerized. It uses two containers:
+پس از ایجاد این فایل، اجرای محلی با دستور معمول Docker Compose انجام می‌شود:
 
-1. FastAPI application container
-2. Nginx reverse proxy container
-
-Build and run the project:
+<div dir="ltr" align="left">
 
 ```bash
-docker compose up --build
+docker compose up -d --build
 ```
 
-After the containers start successfully, open:
+</div>
+
+آدرس نسخه محلی:
+
+<div dir="ltr" align="left">
 
 ```text
-http://127.0.0.1
+http://127.0.0.1:8000
 ```
 
-To stop the running containers, press:
+</div>
 
-```text
-CTRL + C
+مشاهده وضعیت کانتینر:
+
+<div dir="ltr" align="left">
+
+```bash
+docker compose ps
 ```
 
-Then remove the containers and network:
+</div>
+
+مشاهده Logها:
+
+<div dir="ltr" align="left">
+
+```bash
+docker compose logs -f
+```
+
+</div>
+
+توقف و حذف کانتینرهای محلی:
+
+<div dir="ltr" align="left">
 
 ```bash
 docker compose down
 ```
 
-## Docker Configuration
+</div>
 
-### Dockerfile
+---
 
-The `Dockerfile` uses `python:3.11-slim` as the base image. It copies the project files, installs dependencies from `requirements.txt`, exposes port `8000`, and starts the FastAPI app with Uvicorn.
+## سرویس‌های Docker در سرور
 
-Main command inside the container:
+فایل `docker-compose.yml` شامل دو سرویس اصلی است:
 
-```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000
+### سرویس app
+
+وظایف این سرویس:
+
+- ساخت Image برنامه
+- نصب وابستگی‌های Python
+- اجرای FastAPI با Uvicorn
+- در دسترس قراردادن پورت داخلی `8000`
+
+### سرویس nginx
+
+وظایف این سرویس:
+
+- دریافت درخواست‌های HTTP و HTTPS
+- انتقال درخواست‌ها به FastAPI
+- مدیریت Reverse Proxy
+- پشتیبانی از SSE
+- Redirect کردن HTTP به HTTPS
+- استفاده از گواهی SSL
+
+هر دو سرویس با سیاست زیر اجرا می‌شوند:
+
+<div dir="ltr" align="left">
+
+```yaml
+restart: unless-stopped
 ```
 
-### docker-compose.yml
+</div>
 
-The Docker Compose configuration defines two services:
+بنابراین پس از Restart عادی سرور، کانتینرها به‌صورت خودکار دوباره اجرا می‌شوند.
 
-- `app`: builds and runs the FastAPI application.
-- `nginx`: runs an Nginx container and forwards port `80` to the application.
+---
 
-The FastAPI service is exposed internally on port `8000`, and Nginx receives external HTTP traffic on port `80`.
+## تنظیمات Nginx
 
-### nginx.conf
+Nginx درخواست‌های کاربر را به سرویس FastAPI منتقل می‌کند:
 
-Nginx is configured as a reverse proxy:
+<div dir="ltr" align="left">
 
 ```text
-Client Browser -> Nginx Container -> FastAPI Container
+Browser → Nginx → FastAPI
 ```
 
-The Nginx configuration forwards requests to:
+</div>
 
-```text
-http://app:8000
-```
+برای جلوگیری از اختلال در خروجی زنده SSE، تنظیمات زیر در Nginx قرار گرفته‌اند:
 
-The following options are included for streaming support:
+<div dir="ltr" align="left">
 
 ```nginx
 proxy_buffering off;
@@ -499,90 +575,183 @@ proxy_read_timeout 3600;
 proxy_send_timeout 3600;
 ```
 
-These settings are important because the frontend uses Server-Sent Events to receive scenario output step by step.
+</div>
 
-## Testing
+این تنظیمات مانع Buffer شدن خروجی می‌شوند و اجازه می‌دهند پیام‌های سناریو بلافاصله در مرورگر نمایش داده شوند.
 
-The project was tested in three levels:
+---
 
-### 1. Thread API Testing
+## استقرار روی سرور
 
-All thread-based scenarios were tested:
+پروژه روی یک VPS مبتنی بر Ubuntu مستقر شده است.
+
+مراحل اصلی استقرار عبارت‌اند از:
+
+1. نصب Docker و Docker Compose
+2. دریافت پروژه از GitHub
+3. ساخت Image برنامه
+4. اجرای سرویس‌های FastAPI و Nginx
+5. اتصال دامنه به IP سرور
+6. فعال‌سازی فایروال
+7. دریافت گواهی SSL
+8. انتقال خودکار HTTP به HTTPS
+9. آزمایش موفق قابلیت تمدید گواهی با Certbot
+10. بررسی Logها و وضعیت کانتینرها
+
+دامنه نهایی پروژه:
+
+<div dir="ltr" align="left">
 
 ```text
-10 sections × 3 scenarios = 30 scenarios
+https://amirhosseintaheri80.ir
 ```
 
-Result:
+</div>
+
+---
+
+## امنیت و SSL
+
+برای ارتباط امن کاربران با برنامه، HTTPS فعال شده است.
+
+اقدامات انجام‌شده:
+
+- دریافت گواهی SSL معتبر از Let’s Encrypt
+- پشتیبانی از TLS 1.2 و TLS 1.3
+- Redirect خودکار HTTP به HTTPS
+- نگهداری فایل‌های SSL خارج از Git
+- قرار دادن پوشه Certbot در `.gitignore`
+- آزمایش موفق تمدید گواهی با دستور `certbot renew --dry-run`
+- بازکردن فقط پورت‌های ضروری در Firewall
+
+فایل‌های خصوصی گواهی SSL در مخزن GitHub قرار نمی‌گیرند. برای ادامه فعالیت بلندمدت سایت، زمان‌بندی تمدید گواهی باید جداگانه تنظیم و کنترل شود.
+
+---
+
+## آزمایش پروژه
+
+پروژه در سه سطح بررسی شده است:
+
+### آزمایش سناریوهای Thread
+
+<div dir="ltr" align="left">
+
+```text
+۳۰ سناریو = ۳ سناریو × ۱۰ بخش
+```
+
+نتیجه:
 
 ```text
 30/30 OK
 ```
 
-### 2. Process API Testing
+</div>
 
-All process-based scenarios were tested:
+### آزمایش سناریوهای Process
+
+<div dir="ltr" align="left">
 
 ```text
-8 sections × 3 scenarios = 24 scenarios
+۲۴ سناریو = ۳ سناریو × ۸ بخش
 ```
 
-Result:
+نتیجه:
 
 ```text
 24/24 OK
 ```
 
-### 3. Docker and Web UI Testing
+</div>
 
-The project was successfully built and executed using Docker Compose.
+### آزمایش استقرار
 
-Tested Docker command:
+موارد زیر با موفقیت بررسی شدند:
 
-```bash
-docker compose up --build
-```
+- اجرای FastAPI
+- اجرای Nginx
+- ساخت Docker Image
+- اجرای Docker Compose
+- دسترسی به رابط وب
+- اجرای APIهای Thread
+- اجرای APIهای Process
+- نمایش خروجی SSE
+- دسترسی از طریق دامنه
+- Redirect از HTTP به HTTPS
+- اعتبار گواهی SSL
+- آزمایش تمدید گواهی با Certbot
+- اجرای خودکار کانتینرها پس از Restart سرور
+- اجرای مستقل نسخه محلی روی پورت `8000`
 
-The following containers were created and started:
+---
 
-```text
-parallel_fastapi_app
-parallel_nginx
-```
+## تصاویر مراحل اجرا و استقرار
 
-Successful FastAPI log:
+تصاویر مستندات پروژه در مسیر `docs/images` نگهداری می‌شوند.
 
-```text
-Uvicorn running on http://0.0.0.0:8000
-```
+### رابط وب پروژه
 
-Successful Nginx log:
+![رابط وب پروژه](docs/images/01-web-interface.png)
 
-```text
-Configuration complete; ready for start up
-```
+### اجرای سناریوی Thread
 
-The web interface was tested at:
+![اجرای سناریوی Thread](docs/images/02-thread-scenario.png)
 
-```text
-http://127.0.0.1
-```
+### اجرای سناریوی Process
 
-The following scenarios were tested successfully from the UI:
+![اجرای سناریوی Process](docs/images/03-process-scenario.png)
 
-```text
-Thread-Based Parallelism -> Section 10 -> Scenario 1
-Process-Based Parallelism -> Section 8 -> Scenario 3
-```
+### اجرای محلی با Docker
 
-The following API endpoints were also tested successfully:
+![اجرای محلی با Docker](docs/images/04-local-docker.png)
 
-```text
-http://127.0.0.1/api/thread/1/1
-http://127.0.0.1/api/process/8/3
-```
+### وضعیت کانتینرهای سرور
 
-## Notes About Encoding
+![وضعیت کانتینرهای سرور](docs/images/05-server-containers.png)
 
-When testing JSON responses in Windows PowerShell, Persian text may appear incorrectly encoded. This is a PowerShell display issue and not an application error. The Persian text is displayed correctly in the browser and web interface.
+### مخزن GitHub
 
+![مخزن GitHub](docs/images/06-github-repository.png)
+
+> فایل‌های تصویری بالا باید با همین نام‌ها در پوشه `docs/images` قرار گیرند تا در GitHub نمایش داده شوند.
+
+---
+
+## نکات مربوط به خروجی‌ها
+
+ترتیب خروجی Threadها و Processها همیشه کاملاً ثابت نیست؛ زیرا زمان‌بندی اجرای آن‌ها توسط سیستم‌عامل انجام می‌شود.
+
+بنابراین ممکن است در اجرای مجدد یک سناریو:
+
+- ترتیب بعضی پیام‌ها تغییر کند.
+- یک Thread زودتر یا دیرتر تمام شود.
+- ترتیب پایان Processها متفاوت باشد.
+- PIDها تغییر کنند.
+
+این رفتار خطای برنامه نیست و بخشی از ماهیت اجرای هم‌زمان است.
+
+---
+
+## توسعه‌دهنده
+
+**سیدامیرحسین طاهری**
+
+کارشناسی ارشد مهندسی کامپیوتر – گرایش نرم‌افزار
+
+<div dir="ltr" align="left">
+
+GitHub:
+
+[https://github.com/SeAmTa](https://github.com/SeAmTa)
+
+</div>
+
+---
+
+## جمع‌بندی
+
+این پروژه یک محیط آموزشی کامل برای بررسی مفاهیم Threading و Multiprocessing در پایتون فراهم می‌کند.
+
+ترکیب سناریوهای عملی، رابط وب، REST API، خروجی زنده، معماری ماژولار، Docker، Nginx و استقرار واقعی روی VPS باعث شده است پروژه علاوه بر اهداف آموزشی، یک نمونه کامل از طراحی و استقرار یک برنامه وب Python نیز باشد.
+
+</div>
